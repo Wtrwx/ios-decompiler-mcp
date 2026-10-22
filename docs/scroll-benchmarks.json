@@ -1,0 +1,262 @@
+{
+  "samples": [
+    {
+      "index": 0,
+      "kind": "cold",
+      "client_ms": 6423.356,
+      "server_ms": 6376.69,
+      "result_bytes": 537,
+      "reused": false,
+      "step_ms": 270,
+      "offset_y": 896
+    },
+    {
+      "index": 1,
+      "kind": "reuse",
+      "client_ms": 846.416,
+      "server_ms": 840.54,
+      "result_bytes": 531,
+      "reused": true,
+      "step_ms": 9,
+      "offset_y": 0
+    },
+    {
+      "index": 2,
+      "kind": "reuse",
+      "client_ms": 675.677,
+      "server_ms": 667.58,
+      "result_bytes": 533,
+      "reused": true,
+      "step_ms": 9,
+      "offset_y": 896
+    },
+    {
+      "index": 3,
+      "kind": "reuse",
+      "client_ms": 665.098,
+      "server_ms": 656.63,
+      "result_bytes": 532,
+      "reused": true,
+      "step_ms": 10,
+      "offset_y": 0
+    },
+    {
+      "index": 4,
+      "kind": "reuse",
+      "client_ms": 655.315,
+      "server_ms": 645.78,
+      "result_bytes": 533,
+      "reused": true,
+      "step_ms": 9,
+      "offset_y": 896
+    },
+    {
+      "index": 5,
+      "kind": "reuse",
+      "client_ms": 666.805,
+      "server_ms": 657.72,
+      "result_bytes": 531,
+      "reused": true,
+      "step_ms": 9,
+      "offset_y": 0
+    },
+    {
+      "index": 6,
+      "kind": "reuse",
+      "client_ms": 681.9,
+      "server_ms": 672.75,
+      "result_bytes": 534,
+      "reused": true,
+      "step_ms": 10,
+      "offset_y": 896
+    },
+    {
+      "index": 7,
+      "kind": "reuse",
+      "client_ms": 657.738,
+      "server_ms": 648.87,
+      "result_bytes": 532,
+      "reused": true,
+      "step_ms": 21,
+      "offset_y": 0
+    },
+    {
+      "index": 8,
+      "kind": "reuse",
+      "client_ms": 654.523,
+      "server_ms": 646.1,
+      "result_bytes": 533,
+      "reused": true,
+      "step_ms": 10,
+      "offset_y": 896
+    },
+    {
+      "index": 9,
+      "kind": "reuse",
+      "client_ms": 662.327,
+      "server_ms": 654.32,
+      "result_bytes": 532,
+      "reused": true,
+      "step_ms": 18,
+      "offset_y": 0
+    },
+    {
+      "index": 10,
+      "kind": "reuse",
+      "client_ms": 652.428,
+      "server_ms": 642.41,
+      "result_bytes": 533,
+      "reused": true,
+      "step_ms": 7,
+      "offset_y": 896
+    },
+    {
+      "index": 11,
+      "kind": "reuse",
+      "client_ms": 678.085,
+      "server_ms": 670.76,
+      "result_bytes": 532,
+      "reused": true,
+      "step_ms": 25,
+      "offset_y": 0
+    },
+    {
+      "index": 12,
+      "kind": "reuse",
+      "client_ms": 643.076,
+      "server_ms": 634.68,
+      "result_bytes": 533,
+      "reused": true,
+      "step_ms": 7,
+      "offset_y": 896
+    },
+    {
+      "index": 13,
+      "kind": "reuse",
+      "client_ms": 653.733,
+      "server_ms": 645.74,
+      "result_bytes": 532,
+      "reused": true,
+      "step_ms": 14,
+      "offset_y": 0
+    },
+    {
+      "index": 14,
+      "kind": "reuse",
+      "client_ms": 651.2,
+      "server_ms": 642.42,
+      "result_bytes": 533,
+      "reused": true,
+      "step_ms": 9,
+      "offset_y": 896
+    },
+    {
+      "index": 15,
+      "kind": "reuse",
+      "client_ms": 659.695,
+      "server_ms": 652.46,
+      "result_bytes": 532,
+      "reused": true,
+      "step_ms": 20,
+      "offset_y": 0
+    },
+    {
+      "index": 16,
+      "kind": "reuse",
+      "client_ms": 593.396,
+      "server_ms": 584.55,
+      "result_bytes": 533,
+      "reused": true,
+      "step_ms": 6,
+      "offset_y": 896
+    },
+    {
+      "index": 17,
+      "kind": "reuse",
+      "client_ms": 666.475,
+      "server_ms": 657.03,
+      "result_bytes": 532,
+      "reused": true,
+      "step_ms": 23,
+      "offset_y": 0
+    },
+    {
+      "index": 18,
+      "kind": "reuse",
+      "client_ms": 655.595,
+      "server_ms": 646.75,
+      "result_bytes": 534,
+      "reused": true,
+      "step_ms": 10,
+      "offset_y": 896
+    },
+    {
+      "index": 19,
+      "kind": "reuse",
+      "client_ms": 681.013,
+      "server_ms": 671.16,
+      "result_bytes": 532,
+      "reused": true,
+      "step_ms": 19,
+      "offset_y": 0
+    },
+    {
+      "index": 20,
+      "kind": "reuse",
+      "client_ms": 655.28,
+      "server_ms": 648.28,
+      "result_bytes": 534,
+      "reused": true,
+      "step_ms": 10,
+      "offset_y": 896
+    }
+  ],
+  "settle_ms": 500,
+  "transport": "MCP stdio",
+  "image": false,
+  "agent_sha256": "8e0eac7fbf6dbc0f9751de68021374e3206726db57b4515c24f7c66eccd6d839",
+  "summary": {
+    "cold_n": 1,
+    "warm_n": 20,
+    "warm_reused_all": true,
+    "sessions": 1,
+    "cold": {
+      "index": 0,
+      "kind": "cold",
+      "client_ms": 6423.356,
+      "server_ms": 6376.69,
+      "result_bytes": 537,
+      "reused": false,
+      "step_ms": 270,
+      "offset_y": 896
+    },
+    "server_ms": {
+      "p50": 648.87,
+      "p95": 672.75
+    },
+    "client_ms": {
+      "p50": 657.738,
+      "p95": 681.9
+    },
+    "result_bytes": {
+      "p50": 532,
+      "p95": 534
+    },
+    "step_ms": {
+      "p50": 10,
+      "p95": 23
+    }
+  },
+  "recorded": "2026-10-23",
+  "device": "iPhone11,8 / iOS 16.0",
+  "application": "Douyin 40.7.0 (407019)",
+  "pattern": "Alternate two adjacent feed pages; one cold request and 20 warm requests",
+  "calls_per_sample": 1,
+  "notes": [
+    "Real installed MCP over stdio; no private layout probe during this run.",
+    "All samples include an explicit 500 ms animation settle; no screenshots or UI text.",
+    "Warm samples revisit cached feed pages, not 20 new network-loaded posts.",
+    "The caller and server times exclude model scheduling and viewer display.",
+    "Cold n=1 has no percentile estimate. Earlier incomplete timeout runs are excluded from successful-series percentiles."
+  ]
+}

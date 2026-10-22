@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from types import SimpleNamespace
@@ -123,6 +124,53 @@ async def test_real_sftp_atomic_transfers_and_symlink_confinement(tmp_path):
         assert escaped.value.code == "NOT_ALLOWED" and not (tmp_path / "escaped").exists()
         with pytest.raises(MCPError):
             await adapter.upload("test", source, "/staging/../outside/file")
+
+
+async def test_crashes_use_roothide_fallback_only_when_all_roots_inaccessible(tmp_path, monkeypatch):
+    scanned = []
+    original = asyncssh.SFTPClient.scandir
+
+    async def tracked_scandir(client, path):
+        scanned.append(path)
+        async for entry in original(client, path):
+            yield entry
+
+    monkeypatch.setattr(asyncssh.SFTPClient, "scandir", tracked_scandir)
+    async with ssh_server(tmp_path) as (adapter, remote):
+        adapter.settings.devices["test"].crash_roots = ["/logs", "/missing"]
+        with pytest.raises(MCPError, match="absence of crashes cannot be verified"):
+            await adapter.list_crashes("test", "Fixture", 0)
+        assert scanned == ["/logs", "/missing", "/rootfs/logs", "/rootfs/missing"]
+        real_logs = remote / "rootfs/logs"
+        real_logs.mkdir(parents=True)
+        for name in ("Fixture-new.ips", "Fixture-old.crash", "Other-new.ips", "Fixture-ignored.txt"):
+            (real_logs / name).write_text("test report")
+        os.utime(real_logs / "Fixture-old.crash", (1, 1))
+        scanned.clear()
+        crashes = await adapter.list_crashes("test", "Fixture", 2)
+        assert [crash["name"] for crash in crashes] == ["Fixture-new.ips"]
+        assert scanned == ["/logs", "/missing", "/rootfs/logs", "/rootfs/missing"]
+        assert await adapter.list_crashes("test", "Fixture", 2**40) == []
+
+
+async def test_readable_empty_crash_directory_avoids_roothide_queries(tmp_path, monkeypatch):
+    scanned = []
+    original = asyncssh.SFTPClient.scandir
+
+    async def tracked_scandir(client, path):
+        scanned.append(path)
+        async for entry in original(client, path):
+            yield entry
+
+    monkeypatch.setattr(asyncssh.SFTPClient, "scandir", tracked_scandir)
+    async with ssh_server(tmp_path) as (adapter, remote):
+        adapter.settings.devices["test"].crash_roots = ["/logs", "/logs", "/missing"]
+        (remote / "logs").mkdir()
+        fallback = remote / "rootfs/logs"
+        fallback.mkdir(parents=True)
+        (fallback / "Fixture-old.ips").write_text("should not be queried")
+        assert await adapter.list_crashes("test", "Fixture", 0) == []
+        assert scanned == ["/logs", "/missing"]
 
 
 class Cancellable:

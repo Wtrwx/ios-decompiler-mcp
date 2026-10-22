@@ -7,7 +7,7 @@ No legacy import/CLI entry points are shipped. The default focused catalog expos
 **19 tools**, with **70** validated primitives available through `platform_tool`
 or `tool_profile="full"`. Catalog response sizes: 42,343 / 129,746 UTF-8 bytes.
 
-Host checks: **93 Python tests**, **19 production-agent tests**, Ruff, mypy,
+Host checks: **95 Python tests**, **19 production-agent tests**, Ruff, mypy,
 TypeScript typecheck, locked dependency installation and agent build pass.
 Wheel/sdist build and installed-wheel stdio verification pass. The wheel contains
 the compiled agent, LLDB worker and third-party licenses; the source archive
@@ -40,11 +40,20 @@ Physical checks on the configured iPhone/iOS 16.0 and Frida 17.5.0:
   are covered by agent tests. Feed scrolling is now measured on Douyin 40.7.0: forward/backward
   offsets and image/video model transitions passed, with `isPlaying=true` and
   advancing playback time. `pages=1/-1` reads the live viewport height, and an
-  observed view ID avoids another UI traversal.
+  observed view ID avoids another UI traversal. A later real stdio series passed
+  20 alternating page requests with one reused session: server p50/p95
+  649/673 ms, client 658/682 ms, 532/534 result bytes. Each includes an explicit
+  500 ms settle; cold setup was one 6423 ms client sample. These revisit two
+  cached pages and exclude model/display time. See [sample data](scroll-benchmarks.json).
 - Real app log ring started with partial-symbol reporting, bounded at 100 while
   thousands of records arrived, supported filtered cursor reads, and stopped.
   Frida register/backtrace reads work. os_log entries are format strings;
   encoded arguments are not expanded. This is not system-wide log history.
+  RootHide historical crash discovery is also verified on-device: standard SSH
+  crash directories were inaccessible; `/rootfs` fallback found five target
+  reports, while a recent 60-second filter returned zero. This is a point-in-time
+  directory check, not proof of overall app stability. Two real SFTP integration
+  tests cover fallback/filtering and skipping fallback for readable empty roots.
 - Apple debugserver was installed from local Xcode iOS support and executes its
   version command. Both this copy and the device's pre-existing XcodeAnyDebug
   binary crash with SIGSEGV during attach on this setup. LLDB inspection therefore

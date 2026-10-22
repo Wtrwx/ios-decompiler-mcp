@@ -73,6 +73,29 @@ Selected ivar reads and two-step read-only batches were separately measured at
 n=20: server p50/p95 141/182 and 174/193 ms; results 792 and 611 bytes. Their
 client measurements used the SDK's in-memory transport, not stdio.
 
+## Feed page scrolling
+
+The installed MCP was measured on Douyin 40.7.0 after rebuilding/installing the
+test tweak. `ui_automate` used `scroll`, `pages=1/-1`, `animated=true`,
+`settle_ms=500`, and no final capture/text. One cold request selected the Feed
+class; 20 warm requests reused its returned view ID and the same Frida session.
+They alternated two adjacent cached pages. This is not a 20-new-post network or
+content-loading benchmark. No additional attach was needed in the warm series.
+
+| Condition | n | Calls/sample | Server ms | stdio client ms | Result bytes |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Cold setup + first page | 1 | 1 | 6376.69 | 6423.36 | 537 |
+| Warm p50 / p95 | 20 | 1 | 648.87 / 672.75 | 657.74 / 681.90 | 532 / 534 |
+
+Every warm sample reported session reuse. The on-device step itself was
+10 / 23 ms p50/p95; server/client time also includes the deliberate 500 ms
+settle, main-queue dispatch, RPC and serialization. These stages overlap and
+must not be treated as independent additive timing estimates. No image tokens
+are required unless the caller requests a screenshot. Model scheduling and
+display remain unmeasured. Cold n=1 has no percentile estimate. Earlier timeout
+runs were retained privately and excluded from this successful-series summary.
+See [per-sample results](scroll-benchmarks.json).
+
 ## Encoding and response size
 
 The controlled screenshots were byte-identical lossless PNGs: 828×1792,

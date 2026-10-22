@@ -282,16 +282,23 @@ class SSHAdapter:
         readable = False
         async with asyncio.timeout(self.settings.operation_timeout):
             async with connection.start_sftp_client() as sftp:
-                for root in self.settings.devices[device_id].crash_roots:
-                    try:
-                        async for entry in sftp.scandir(root):
-                            if entry.filename.startswith(executable + "-") and entry.filename.endswith((".ips", ".crash")) and (entry.attrs.mtime or 0) >= since:
-                                crashes.append({"name": entry.filename, "modified_at": entry.attrs.mtime})
-                                if len(crashes) >= 100:
-                                    return crashes
-                        readable = True
-                    except (asyncssh.SFTPNoSuchFile, asyncssh.SFTPPermissionDenied):
-                        continue
+                roots = list(dict.fromkeys(self.settings.devices[device_id].crash_roots))
+                # RootHide exposes the real device filesystem below /rootfs.
+                # Probe it only if every configured directory was inaccessible.
+                fallback = ["/rootfs" + root for root in roots if root != "/rootfs" and not root.startswith("/rootfs/")]
+                for candidates in (roots, fallback):
+                    for root in candidates:
+                        try:
+                            async for entry in sftp.scandir(root):
+                                if entry.filename.startswith(executable + "-") and entry.filename.endswith((".ips", ".crash")) and (entry.attrs.mtime or 0) >= since:
+                                    crashes.append({"name": entry.filename, "modified_at": entry.attrs.mtime})
+                                    if len(crashes) >= 100:
+                                        return crashes
+                            readable = True
+                        except (asyncssh.SFTPNoSuchFile, asyncssh.SFTPPermissionDenied):
+                            continue
+                    if readable:
+                        break
         if not readable:
             raise MCPError(Code.UNAVAILABLE, "Crash directories are inaccessible; absence of crashes cannot be verified")
         return crashes

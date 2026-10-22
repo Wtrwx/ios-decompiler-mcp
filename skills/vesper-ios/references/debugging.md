@@ -27,6 +27,13 @@ buffer is not decoded. This captures the target process, not system-wide history
 matches still advances `next_cursor`. Stop the stream to remove hooks and allow
 normal idle reclamation.
 
+For historical crashes on RootHide, the real CrashReporter directories may be
+under `/rootfs/var/mobile/Library/Logs/CrashReporter` instead of the SSH root's
+`/var/mobile/...`. Deployment verification tries the `/rootfs` equivalents only
+when all configured crash roots are inaccessible. An inaccessible directory is
+not evidence of a crash-free run. Correlate the target process, timestamp and
+termination reason; keep raw reports local and collect only the needed frames.
+
 ## UIKit layout diagnosis
 
 Compare the actual media view, its container, overlays and occluding panels in
@@ -37,8 +44,19 @@ model-layer endpoints from presentation geometry. Read live method encodings
 before tracing or implementing a hook: old generated headers can label BOOL,
 double and CGRect arguments as `id`. Record the app version and backend class.
 
+Separate photo posts, portrait video and landscape video. A photo placeholder's
+large rectangle need not match the rendered image. Check the loaded image size,
+content mode and clipping, or verify a screenshot before changing photo layout.
+Cache a closed-comment video baseline before native comment animation begins;
+layout callbacks during that animation already contain transformed geometry.
+Avoid invalidating a view unconditionally from its own layout callback.
+
 A UIButton may implement taps solely through a gesture/block with no UIControl
 events or accessibility activation. An unsupported semantic tap is a test
 limitation, not evidence that the app action failed. Use an existing app test
 hook with a verified selector/ABI when available, and label that observation
 separately from physical touch. Keep temporary probes scoped and remove them.
+For native action probes, select the currently visible controller and wait for
+its transition to finish before another open/close action. A retained but closed
+controller is not an active panel. Direct selector calls can bypass the app's
+touch debounce and must not be used to infer physical-touch stability.
