@@ -203,6 +203,17 @@ test('automation semantics batch taps/input/back without echoing text and stop o
   assert.ok(custom.retains > 0);
 });
 
+test('gesture-only UIButton reports unsupported action when UIWindow.window is nil', async () => {
+  const r = runtime();
+  r.root.window = () => null;
+  r.add(r.root, r.view('UIButton', { identifier: 'gesture-only', events: 0, gestures: true }));
+  const result = await r.automation.run({ _lease_id: 'gesture-window-boundary', _lease_ttl: 60,
+    after_capture: 'none', steps: [{ action: 'tap', target: { accessibility_identifier: 'gesture-only' } }] });
+  assert.equal(result.completed, false);
+  assert.match(result.steps[0].error, /physical touch\/gesture injection/);
+  assert.equal(result.steps[0].performed, false);
+});
+
 test('automation rejects ambiguous/hidden/disabled targets and supports noninteractive assertions', async () => {
   const r = runtime();
   r.add(r.root, r.view('UIButton', { identifier: 'duplicate' }));

@@ -85,6 +85,9 @@ export function step(args: Args): Args {
   if (action === "assert" || action === "wait_for") return { action, matched: true, view_id: viewId };
   if (action === "tap") {
     for (let i = 0; i < 32 && present(view); i++, view = view!.superview()) {
+      // A gesture-only control can reach its window without finding an action.
+      // UIWindow.window may be nil; it is the traversal boundary, not a target.
+      if (kind(view, "UIWindow")) break;
       actionable(view!, false);
       if (kind(view, "UISwitch")) {
         actionable(view!);

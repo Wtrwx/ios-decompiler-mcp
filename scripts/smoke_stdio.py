@@ -17,7 +17,13 @@ async def smoke() -> None:
     package = distribution("vesper")
     commands = {entry.name for entry in package.entry_points if entry.group == "console_scripts"}
     assert commands == {"vesper", "vesper-approve"}
-    assert files("vesper").joinpath("assets/agent.js").is_file()
+    resources = files("vesper")
+    assert resources.joinpath("assets/agent.js").is_file()
+    assert resources.joinpath("assets/lldb_worker.py").is_file()
+    assert resources.joinpath("assets/licenses/frida-ios-dump-MIT.txt").is_file()
+    compiled = Path(__file__).resolve().parents[1] / "src/vesper/assets/agent.js"
+    if compiled.exists():
+        assert resources.joinpath("assets/agent.js").read_bytes() == compiled.read_bytes(), "Installed agent differs from the current build; reinstall the package"
     with TemporaryDirectory() as directory:
         config = Path(directory) / "config.toml"
         config.write_text(f'workspace = "{directory}"\nstate_dir = "{directory}/state"\n')

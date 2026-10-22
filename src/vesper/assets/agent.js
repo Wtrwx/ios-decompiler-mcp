@@ -1,5 +1,5 @@
 📦
-163592 /agents/frida/index.js
+163641 /agents/frida/index.js
 ✄
 // node_modules/frida-objc-bridge/lib/api.js
 var cachedApi = null;
@@ -3864,6 +3864,8 @@ function step(args) {
     return { action, matched: true, view_id: viewId };
   if (action === "tap") {
     for (let i = 0; i < 32 && present(view); i++, view = view.superview()) {
+      if (kind(view, "UIWindow"))
+        break;
       actionable(view, false);
       if (kind(view, "UISwitch")) {
         actionable(view);
