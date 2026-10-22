@@ -40,6 +40,11 @@ UIKit actions dispatch controls/accessibility, pop/dismiss controllers, set text
 with change events, and adjust scroll offsets. They do not synthesize raw HID
 touches, gesture trajectories, or keyboard composition. A custom gesture-only
 view can be inspected but may require an existing test hook for activation.
+For a vertical paged feed, use `scroll` with `pages=1` (next) or `pages=-1`
+(previous), optionally `animated=true` and a bounded `settle_ms`. The device
+reads its current viewport height; do not hardcode screen pixels or Tab Bar
+height. Reuse the observed scroll view ID to avoid another tree search. Verify
+page identity/playback where relevant; content offsets alone do not prove play.
 
 For a tweak regression, observe the relevant property/action before and after
 the change, then assert the expected state. For builds/deployment, read

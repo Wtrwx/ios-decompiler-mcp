@@ -5,9 +5,9 @@
 The package/CLI is `vesper`, MCP display name **Vesper iOS**, client key `vesper`.
 No legacy import/CLI entry points are shipped. The default focused catalog exposes
 **19 tools**, with **70** validated primitives available through `platform_tool`
-or `tool_profile="full"`. Catalog response sizes: 42,141 / 129,544 UTF-8 bytes.
+or `tool_profile="full"`. Catalog response sizes: 42,343 / 129,746 UTF-8 bytes.
 
-Host checks: **92 Python tests**, **18 production-agent tests**, Ruff, mypy,
+Host checks: **93 Python tests**, **19 production-agent tests**, Ruff, mypy,
 TypeScript typecheck, locked dependency installation and agent build pass.
 Wheel/sdist build and installed-wheel stdio verification pass. The wheel contains
 the compiled agent, LLDB worker and third-party licenses; the source archive
@@ -15,9 +15,11 @@ includes the Agent Skill. The installed server starts outside the source tree
 and exposes 19 focused tools. The new local Codex `vesper` configuration was
 also launched directly: `Vesper iOS` returned a native image from the phone
 (one cold request, 7209.74 ms MCP round trip; not a statistical speed claim).
-Its final agent SHA-256 is
+The screenshot deployment check used agent SHA-256
 `7a5113a04242c03899ddca9bcbbd8a00d162e68b94b1431463c35a94463c223f`
-for that deployment check. A later gesture-only UIButton traversal fix is covered
+for that deployment check. Current page-scroll build SHA-256 is
+`8e0eac7fbf6dbc0f9751de68021374e3206726db57b4515c24f7c66eccd6d839`.
+A later gesture-only UIButton traversal fix is covered
 by an additional agent test; it stops at UIWindow rather than reporting a false
 detached-view error when the window's own `window` is nil.
 The Agent Skill passes skill-creator's validator. New tests cover session/PID
@@ -34,8 +36,11 @@ Physical checks on the configured iPhone/iOS 16.0 and Frida 17.5.0:
 - Earlier UI operation: an observed AWEButton dispatched its control event and
   navigation back popped the resulting page, reusing the same session. Read-only
   assertion/wait batches, selected scalar ivars, mixed object handles and bounded
-  heap queries passed. Physical text input and scrolling remain unmeasured;
-  their UIKit semantics are covered by agent tests.
+  heap queries passed. Physical text input remains unmeasured; its UIKit semantics
+  are covered by agent tests. Feed scrolling is now measured on Douyin 40.7.0: forward/backward
+  offsets and image/video model transitions passed, with `isPlaying=true` and
+  advancing playback time. `pages=1/-1` reads the live viewport height, and an
+  observed view ID avoids another UI traversal.
 - Real app log ring started with partial-symbol reporting, bounded at 100 while
   thousands of records arrived, supported filtered cursor reads, and stopped.
   Frida register/backtrace reads work. os_log entries are format strings;

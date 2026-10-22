@@ -14,7 +14,7 @@
 | `tap` | `target`，可选 `event` | 最近的 UIControl 发送 touch-up-inside/primary-action；UISwitch 切换状态并发 value-changed；或 accessibility activation |
 | `back` | `mode=auto/navigation/dismiss`，`animated=false` | 当前导航栈 pop，或关闭模态控制器；根页面不能返回时明确报错 |
 | `input_text` | `target`、`text`，`focus=false` | 设置 UITextField/UITextView 的文本，并发送 editing-changed/文本变更通知 |
-| `scroll` | `target`、`dx/dy`，`animated=false` | 找到 UIScrollView，按 UIKit 点调整并约束 contentOffset |
+| `scroll` | `target`、`dx/dy` 或 `pages`，`animated=false` | 找到 UIScrollView，按 UIKit 点或当前视口页高调整并约束 contentOffset |
 | `assert` | `target` | 检查一个可见目标存在，返回匹配 ID |
 | `wait_for` | `target`、`timeout_ms=1000`、`poll_ms=100` | 在设备端有界轮询；一次 MCP/RPC，无模型往返；超时即停止 |
 
@@ -58,6 +58,19 @@
 触摸/手势的视图会明确返回不支持。滚动不会产生 pan 触摸序列，文本设置不会模拟键盘/IME，
 返回不会合成边缘手势。系统主屏幕、跨 App、任意 HID 触摸不在此次选择的 Frida 部署范围内。
 动画结束、异步网络请求、tweak hook 生效仍需根据实际状态检查。
+
+分页 Feed 可用 `pages: 1` 前进、`pages: -1` 返回；距离直接取所选 UIScrollView 当前的
+`bounds.height`，不需要先查询设备尺寸，也不使用 Tab Bar 以上的信息层高度。
+`pages` 支持 -10..10 的非零整数，与非零 `dx/dy` 互斥；普通列表/图文横向轮播仍可用 `dx/dy`。
+例如，先从摘要取得实际 Feed 的 `view_id`，后续只传该句柄：
+
+```json
+{"device_id":"test","bundle_id":"dev.iosdecompiler.fixture","steps":[{"action":"scroll","target":{"view_id":"process_SESSION:object_N"},"pages":1,"animated":true}],"settle_ms":500}
+```
+
+已有句柄避免重复查找 UI 树；省略 `after_capture` 时不返回图片或整树。`animated=true`
+使用 UIKit 滚动动画，不制造拖拽/减速事件；应验证目标 App 的页面模型和播放状态。
+测试批次可以重复分页步骤，但整批总等待仍受 10 秒约束。
 
 ## 具体实例参数
 
@@ -118,5 +131,7 @@ PYTHONPATH=src .venv/bin/python scripts/verify_runtime.py \
 ```
 
 当前实测覆盖具体 ivar、堆发现、混合对象、零 RPC 分页、只读断言/等待和原生图片。
-点击/输入/滚动/导航的 UIKit 行为使用生产代码单元测试验证。真机验证结果与性能详情见
+真机抖音 40.7.0 已验证滚动 Feed 前后切换图文/视频，复用会话；视频控制器的
+`isPlaying` 与 `currentPlaybackTime` 用于核实播放，而不只判断 contentOffset。
+输入的 UIKit 行为仍只经过生产代码单元测试。真机验证结果与性能详情见
 [采集性能报告](CAPTURE_PERFORMANCE.md)。

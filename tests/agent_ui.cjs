@@ -293,6 +293,24 @@ test('automation scroll clamps UIKit points and switch/accessibility activation 
   assert.deepEqual(toggle.events, [4096]); assert.equal(result.steps[2].method, 'accessibility_activate');
 });
 
+test('page scrolling derives the live viewport and clamps both directions without extra snapshots', async () => {
+  const r = runtime(), scroll = r.add(r.root, r.view('UIScrollView'));
+  let offset = [0, 0], viewport = 400;
+  scroll.contentOffset = () => offset; scroll.contentSize = () => [200, 1100];
+  scroll.bounds = () => [[0, 0], [200, viewport]]; scroll.adjustedContentInset = () => [10, 0, 20, 0];
+  scroll.setContentOffset_animated_ = (next, animated) => { offset = next; assert.equal(animated, true); };
+  const id = scope(r, 'feed', () => r.common.objectId(scroll));
+  const run = pages => r.automation.run({ _lease_id: 'page_' + Math.random(), _lease_ttl: 60,
+    after_capture: 'none', steps: [{ action: 'scroll', target: { view_id: id }, pages, animated: true }] });
+  await run(1); assert.equal(offset[1], 400);
+  viewport = 300; // Rotation/container resize must affect the next page.
+  await run(1); assert.equal(offset[1], 700);
+  const clamped = await run(1); assert.equal(offset[1], 820);
+  assert.deepEqual(clamped.steps[0].content_offset, { x: 0, y: 820 });
+  await run(-10); assert.equal(offset[1], -10);
+  assert.equal(r.chooseCalls.length, 0);
+});
+
 test('instance Foundation values are bounded and dictionary secrets are never read', () => {
   const r = runtime();
   const string = value => Object.assign(r.view('NSString'), { length: () => value.length, substringToIndex_: n => string(value.slice(0, n)), toString: () => value });

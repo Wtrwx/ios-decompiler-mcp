@@ -58,7 +58,15 @@ class Scroll(TargetStep):
     action: Literal['scroll']
     dx: float = Field(default=0, ge=-10000, le=10000, allow_inf_nan=False)
     dy: float = Field(default=0, ge=-10000, le=10000, allow_inf_nan=False)
+    pages: int | None = Field(default=None, ge=-10, le=10,
+                              description='Vertical viewport pages: 1 advances, -1 goes back. Exclusive with dx/dy.')
     animated: bool = False
+
+    @model_validator(mode='after')
+    def select_distance(self) -> Scroll:
+        if self.pages is not None and (self.pages == 0 or self.dx != 0 or self.dy != 0):
+            raise ValueError('pages must be nonzero and cannot be combined with dx/dy')
+        return self
 
 
 class Assert(TargetStep):

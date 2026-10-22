@@ -1,5 +1,5 @@
 📦
-163641 /agents/frida/index.js
+163726 /agents/frida/index.js
 ✄
 // node_modules/frida-objc-bridge/lib/api.js
 var cachedApi = null;
@@ -3908,8 +3908,9 @@ function step(args) {
     const offset = view.contentOffset(), size = view.contentSize(), bounds = view.bounds()[1];
     const inset = view.adjustedContentInset();
     const top = Number(inset[0]), left = Number(inset[1]), bottom = Number(inset[2]), right = Number(inset[3]);
-    const x = Math.max(-left, Math.min(Math.max(-left, Number(size[0]) - Number(bounds[0]) + right), Number(offset[0]) + args.dx));
-    const y = Math.max(-top, Math.min(Math.max(-top, Number(size[1]) - Number(bounds[1]) + bottom), Number(offset[1]) + args.dy));
+    const dy = args.pages == null ? args.dy ?? 0 : Number(bounds[1]) * args.pages;
+    const x = Math.max(-left, Math.min(Math.max(-left, Number(size[0]) - Number(bounds[0]) + right), Number(offset[0]) + (args.dx ?? 0)));
+    const y = Math.max(-top, Math.min(Math.max(-top, Number(size[1]) - Number(bounds[1]) + bottom), Number(offset[1]) + dy));
     view.setContentOffset_animated_([x, y], !!args.animated);
     return { action, view_id: objectId(view), content_offset: { x, y }, performed: true };
   }

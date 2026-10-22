@@ -197,6 +197,9 @@ input sets UITextField/UITextView text and emits change events. These semantics
 cover app testing without additional device services. Arbitrary touch/gesture,
 keyboard/IME and system-wide event injection are outside this backend. See
 [automation and value queries](docs/AUTOMATION.md) for examples and limits.
+Paged feeds accept `scroll` with `pages: 1` or `pages: -1`; distance comes from
+the current scroll viewport on-device. Reuse its observed view ID and opt into
+`animated: true`/`settle_ms` when the app needs animation before checking state.
 
 `objc_query_instances` combines attach/reuse, bounded heap discovery and concrete
 ivar values. Select fields to keep results small:

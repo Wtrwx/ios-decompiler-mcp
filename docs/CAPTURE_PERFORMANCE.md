@@ -96,8 +96,8 @@ it. Native images are tested through both the in-memory SDK and real stdio
 client, including `ui_capture`, `ui_automate` and the advanced-tool gateway.
 Image base64 is never placed in text results or benchmark logs.
 
-The focused catalog advertises 19 tools in 42,141 bytes, versus 70 tools in
-129,544 bytes for the full catalog. Advanced schemas load on demand through
+The focused catalog advertises 19 tools in 42,343 bytes, versus 70 tools in
+129,746 bytes for the full catalog. Advanced schemas load on demand through
 `platform_tool`; workflows live in the conditional Agent Skill. Byte counts are
 context-size measurements, not tokenizer/model-specific token counts.
 

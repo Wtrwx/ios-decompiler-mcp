@@ -89,6 +89,23 @@ async def test_batch_validation_and_uncertain_outcome_never_retries(automated_ap
     assert failed.error.code == 'TIMEOUT' and app.frida.rpc.await_count == sdk.attaches == 1
 
 
+async def test_page_scroll_validates_distance_before_device_access_and_reuses_batch(automated_app):
+    app, sdk, _ = automated_app
+    base = {'device_id': 'test', 'bundle_id': BUNDLE}
+    step = {'action': 'scroll', 'target': {'accessibility_identifier': 'feed'}}
+    for distance in [{'pages': 0}, {'pages': 11}, {'pages': -11}, {'pages': 1, 'dy': 1},
+                     {'pages': -1, 'dx': 1}, {'pages': 1.5}]:
+        result = await app.tools.invoke('ui_automate', {**base, 'steps': [{**step, **distance}]})
+        assert result.error.code == 'INVALID_INPUT'
+    assert sdk.attaches == 0 and not sdk.calls
+    result = await app.tools.invoke('ui_automate', {**base, 'steps': [
+        {**step, 'pages': 1, 'animated': True}, {**step, 'pages': -1},
+    ]})
+    assert result.ok and result.data['completed'] and sdk.attaches == 1
+    calls = [args for name, args in sdk.calls if name == 'automate']
+    assert len(calls) == 1 and [s['pages'] for s in calls[0]['steps']] == [1, -1]
+
+
 async def test_instance_query_reuses_session_and_pages_never_rescan(automated_app):
     app, sdk, _ = automated_app
     base = {'device_id': 'test', 'bundle_id': BUNDLE}

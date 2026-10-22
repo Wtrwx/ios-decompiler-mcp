@@ -161,6 +161,9 @@ Target-Action、约束等信息按需获取。可见性考虑祖先隐藏、累�
 滚动修改 UIScrollView 偏移，输入设置文本并发送变更通知。无需部署额外设备服务。
 当前不模拟任意触摸手势、系统按键或键盘/输入法事件。完整示例和限制见
 [自动化与实例参数](docs/AUTOMATION.md)。
+分页 Feed 可用 `scroll` 的 `pages: 1/-1` 前进或后退，设备端读取当前滚动区域的页高，
+无需预先查询屏幕尺寸。复用已有 `view_id` 可避免再次遍历；按需设置 `animated: true`
+和 `settle_ms`，随后检查页面及播放状态。
 
 `objc_query_instances` 一次完成会话查找、实例枚举和具体 ivar 值读取：
 
