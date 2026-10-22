@@ -3,7 +3,6 @@ from __future__ import annotations
 import gzip
 import io
 import plistlib
-import subprocess
 import sys
 import tarfile
 from pathlib import Path
@@ -17,7 +16,7 @@ from flex_mcp.app import Application
 from flex_mcp.core.errors import FlexError
 
 
-def make_deb(tmp_path: Path, spec: dict, *, global_injection: bool = False, script: bool = False, script_name: str = "postinst") -> Path:
+def make_deb(tmp_path: Path, spec: dict, *, global_injection: bool = False, script: bool = False, script_name: str = "postinst", control_archive: bytes | None = None, trailing_slash: bool = True) -> Path:
     def archive(files):
         stream = io.BytesIO()
         with tarfile.open(fileobj=stream, mode="w:gz") as tar:
@@ -32,10 +31,19 @@ def make_deb(tmp_path: Path, spec: dict, *, global_injection: bool = False, scri
     prefix = "var/jb/" if spec["rootless"] else ""
     base = prefix + "Library/MobileSubstrate/DynamicLibraries/" + spec["name"]
     payload = {base + ".dylib": b"TEST-ONLY-DYLIB", base + ".plist": plistlib.dumps({"Filter": {"Bundles": ["com.apple.springboard" if global_injection else spec["bundle_id"]]}})}
-    for name, content in {"debian-binary": b"2.0\n", "control.tar.gz": archive(control), "data.tar.gz": archive(payload)}.items():
-        (tmp_path / name).write_bytes(content)
+    members = {"debian-binary": b"2.0\n", "control.tar.gz": control_archive if control_archive is not None else archive(control), "data.tar.gz": archive(payload)}
     output = tmp_path / "fixture.deb"
-    subprocess.run(["ar", "rc", str(output), "debian-binary", "control.tar.gz", "data.tar.gz"], cwd=tmp_path, check=True, capture_output=True)
+    # Write the common ar format required by deb(5), independent of host ar defaults.
+    # https://manpages.debian.org/testing/dpkg-dev/deb.5.en.html
+    with output.open("wb") as package:
+        package.write(b"!<arch>\n")
+        for name, content in members.items():
+            filename = name + "/" if trailing_slash else name
+            header = f"{filename:<16}{0:<12}{0:<6}{0:<6}{0o100644:<8o}{len(content):<10}`\n"
+            package.write(header.encode("ascii"))
+            package.write(content)
+            if len(content) % 2:
+                package.write(b"\n")
     return output
 
 
@@ -51,19 +59,58 @@ def test_project_is_editable_and_application_scoped(app: Application, project):
     assert '@"Changed \\"Title\\""' in result["source"]
 
 
-def test_package_inspection_rejects_global_injection_and_scripts(tmp_path: Path):
+@pytest.mark.parametrize("trailing_slash", [False, True])
+def test_package_inspection_rejects_global_injection_and_scripts(tmp_path: Path, trailing_slash: bool):
     spec = ProjectSpec(name="FixtureTitle", package_id="dev.flex.fixture.title", bundle_id="dev.flex.fixture", architectures=["arm64"], sdk_version="16.5", deployment_target="15.0").model_dump()
-    package = make_deb(tmp_path, spec)
+    package = make_deb(tmp_path, spec, trailing_slash=trailing_slash)
     metadata = inspect_package(package, spec, 1048576)
     assert metadata["architecture"] == "iphoneos-arm64"
-    make_deb(tmp_path, spec, global_injection=True)
+    make_deb(tmp_path, spec, global_injection=True, trailing_slash=trailing_slash)
     with pytest.raises(FlexError, match="exactly"):
         inspect_package(package, spec, 1048576)
-    make_deb(tmp_path, spec, script=True)
+    make_deb(tmp_path, spec, script=True, trailing_slash=trailing_slash)
     with pytest.raises(FlexError, match="scripts"):
         inspect_package(package, spec, 1048576)
-    make_deb(tmp_path, spec, script=True, script_name="././postinst")
+    make_deb(tmp_path, spec, script=True, script_name="././postinst", trailing_slash=trailing_slash)
     with pytest.raises(FlexError, match="scripts"):
+        inspect_package(package, spec, 1048576)
+
+
+@pytest.mark.parametrize(("start", "end", "replacement", "code"), [
+    pytest.param(0, 8, b"invalid\n", "INVALID_INPUT", id="signature"),
+    pytest.param(66, 68, b"xx", "INVALID_INPUT", id="header-trailer"),
+    pytest.param(8, 24, b"#1/12".ljust(16), "INVALID_INPUT", id="extended-name"),
+    pytest.param(56, 66, b"-1".ljust(10), "INVALID_INPUT", id="negative-size"),
+    pytest.param(56, 66, b"9999999999", "LIMIT_EXCEEDED", id="oversized-member"),
+])
+def test_malformed_debian_archive_is_rejected(tmp_path: Path, start: int, end: int, replacement: bytes, code: str):
+    spec = ProjectSpec(name="FixtureTitle", package_id="dev.flex.fixture.title", bundle_id="dev.flex.fixture", architectures=["arm64"], sdk_version="16.5", deployment_target="15.0").model_dump()
+    package = make_deb(tmp_path, spec)
+    content = package.read_bytes()
+    package.write_bytes(content[:start] + replacement + content[end:])
+    with pytest.raises(FlexError) as rejected:
+        inspect_package(package, spec, 1048576)
+    assert rejected.value.code == code
+
+
+@pytest.mark.parametrize("length", [7, 67, 71, -1])
+def test_truncated_debian_archive_is_rejected(tmp_path: Path, length: int):
+    spec = ProjectSpec(name="FixtureTitle", package_id="dev.flex.fixture.title", bundle_id="dev.flex.fixture", architectures=["arm64"], sdk_version="16.5", deployment_target="15.0").model_dump()
+    package = make_deb(tmp_path, spec)
+    package.write_bytes(package.read_bytes()[:length])
+    with pytest.raises(FlexError) as rejected:
+        inspect_package(package, spec, 1048576)
+    assert rejected.value.code == "INVALID_INPUT"
+
+
+def test_duplicate_debian_member_names_are_rejected(tmp_path: Path):
+    spec = ProjectSpec(name="FixtureTitle", package_id="dev.flex.fixture.title", bundle_id="dev.flex.fixture", architectures=["arm64"], sdk_version="16.5", deployment_target="15.0").model_dump()
+    package = make_deb(tmp_path, spec)
+    content = package.read_bytes()
+    # The same logical member with and without its optional trailing slash.
+    duplicate = b"debian-binary".ljust(16) + content[24:72]
+    package.write_bytes(content + duplicate)
+    with pytest.raises(FlexError, match="Duplicate"):
         inspect_package(package, spec, 1048576)
 
 
@@ -78,9 +125,7 @@ def test_unsafe_abi_and_makefile_injection_rejected():
 
 def test_compressed_metadata_is_bounded_before_tar_parsing(tmp_path: Path):
     spec = ProjectSpec(name="FixtureTitle", package_id="dev.flex.fixture.title", bundle_id="dev.flex.fixture", architectures=["arm64"], sdk_version="16.5", deployment_target="15.0").model_dump()
-    package = make_deb(tmp_path, spec)
-    (tmp_path / "control.tar.gz").write_bytes(gzip.compress(bytes(5 * 1024 * 1024)))
-    subprocess.run(["ar", "r", str(package), "control.tar.gz"], cwd=tmp_path, check=True, capture_output=True)
+    package = make_deb(tmp_path, spec, control_archive=gzip.compress(bytes(5 * 1024 * 1024)))
     with pytest.raises(FlexError) as rejected:
         inspect_package(package, spec, 65536)
     assert rejected.value.code == "LIMIT_EXCEEDED"

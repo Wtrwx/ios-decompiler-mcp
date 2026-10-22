@@ -3,8 +3,6 @@ from __future__ import annotations
 import io
 import lzma
 import plistlib
-import shutil
-import subprocess
 import tarfile
 import zlib
 from pathlib import Path, PurePosixPath
@@ -13,25 +11,51 @@ from typing import Any
 from flex_mcp.core.errors import Code, FlexError
 
 
-def inspect_package(path: Path, expected: dict[str, Any], limit: int) -> dict[str, Any]:
-    """Inspect archives without extracting or executing package-maintainer scripts."""
+def _read_members(path: Path, limit: int) -> dict[str, bytes]:
+    """Read deb(5)'s common ar format, including optional filename slashes."""
     if path.stat().st_size > limit:
         raise FlexError(Code.LIMIT_EXCEEDED, "Package exceeds the upload limit")
-    ar = shutil.which("ar")
-    if ar is None:
-        raise FlexError(Code.UNAVAILABLE, "Install the host's ar utility to inspect Debian packages")
+    with path.open("rb") as package:
+        content = package.read(limit + 1)
+    if len(content) > limit:
+        raise FlexError(Code.LIMIT_EXCEEDED, "Package exceeds the upload limit")
+    if not content.startswith(b"!<arch>\n"):
+        raise FlexError(Code.INVALID_INPUT, "Invalid Debian archive signature")
 
-    def command(*args: str) -> bytes:
-        try:
-            result = subprocess.run([ar, *args], check=True, capture_output=True, timeout=15)
-        except (subprocess.SubprocessError, OSError) as exc:
-            raise FlexError(Code.INVALID_INPUT, "Debian archive could not be inspected") from exc
-        if len(result.stdout) > limit:
+    members: dict[str, bytes] = {}
+    offset = 8
+    while offset < len(content):
+        header = content[offset:offset + 60]
+        if len(header) != 60 or header[58:] != b"`\n":
+            raise FlexError(Code.INVALID_INPUT, "Invalid or truncated Debian archive header")
+        # Debian packages forbid GNU/BSD long-name extensions. A trailing slash
+        # is optional and must not become part of the member's logical name.
+        name = header[:16].rstrip(b" ").removesuffix(b"/")
+        if not name or len(name) > 15 or b"/" in name or name in {b".", b".."} or any(byte < 33 or byte > 126 for byte in name):
+            raise FlexError(Code.INVALID_INPUT, "Unsupported Debian archive member name")
+        key = name.decode("ascii")
+        if key in members:
+            raise FlexError(Code.INVALID_INPUT, "Duplicate Debian archive member")
+        if len(members) >= 512:
+            raise FlexError(Code.LIMIT_EXCEEDED, "Too many Debian archive members")
+        size_field = header[48:58].strip(b" ")
+        if not size_field.isdigit():
+            raise FlexError(Code.INVALID_INPUT, "Invalid Debian archive member size")
+        size = int(size_field)
+        if size > limit:
             raise FlexError(Code.LIMIT_EXCEEDED, "Debian archive member exceeds the size limit")
-        return result.stdout
+        start, end = offset + 60, offset + 60 + size
+        if end > len(content) or (size % 2 and content[end:end + 1] != b"\n"):
+            raise FlexError(Code.INVALID_INPUT, "Truncated Debian archive member or invalid padding")
+        members[key] = content[start:end]
+        offset = end + size % 2
+    return members
 
-    members = command("-t", str(path)).decode().splitlines()
-    if command("-p", str(path), "debian-binary") != b"2.0\n":
+
+def inspect_package(path: Path, expected: dict[str, Any], limit: int) -> dict[str, Any]:
+    """Inspect archives without extracting or executing package-maintainer scripts."""
+    members = _read_members(path, limit)
+    if members.get("debian-binary") != b"2.0\n":
         raise FlexError(Code.INVALID_INPUT, "Unsupported Debian package format")
     selected: dict[str, str] = {}
     for kind in ("control", "data"):
@@ -41,7 +65,7 @@ def inspect_package(path: Path, expected: dict[str, Any], limit: int) -> dict[st
         selected[kind] = matches[0]
 
     def entries(kind: str) -> dict[str, bytes]:
-        packed = command("-p", str(path), selected[kind])
+        packed = members[selected[kind]]
         result: dict[str, bytes] = {}
         total = 0
         try:
