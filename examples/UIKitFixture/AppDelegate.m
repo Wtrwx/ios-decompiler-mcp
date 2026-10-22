@@ -1,10 +1,10 @@
 #import "AppDelegate.h"
-#import "FLEXFixtureViewController.h"
+#import "DecompilerFixtureViewController.h"
 
 @implementation AppDelegate
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)options {
     self.window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
-    self.window.rootViewController = [FLEXFixtureViewController new];
+    self.window.rootViewController = [DecompilerFixtureViewController new];
     [self.window makeKeyAndVisible];
     return YES;
 }

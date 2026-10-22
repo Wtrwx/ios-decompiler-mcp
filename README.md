@@ -76,7 +76,7 @@ your key, verified SSH host keys, allowed app bundle IDs and the Frida transport
 
 ```toml
 workspace = "/absolute/path/to/ios-decompiler-mcp"
-state_dir = ".flex-mcp"
+state_dir = ".ios-decompiler-mcp"
 
 [devices.test]
 host = "127.0.0.1"
@@ -84,7 +84,7 @@ port = 2222
 username = "root"
 client_keys = ["~/.ssh/id_ed25519"]
 known_hosts = "~/.ssh/known_hosts"
-allowed_apps = ["dev.flex.fixture"]
+allowed_apps = ["dev.iosdecompiler.fixture"]
 frida_device_id = "replace-with-observed-device-id"
 ```
 
@@ -93,6 +93,10 @@ actual endpoint. Verify and pin the SSH host key before connecting. Select the
 exact device ID returned by `frida_list_devices`. For an existing secured
 Frida SSH tunnel, replace `frida_device_id` with
 `frida_remote = "127.0.0.1:27043"`; configure one transport per device.
+
+Select a config with `--config` or the `IOS_DECOMPILER_MCP_CONFIG` environment
+variable. `--config` takes precedence. State defaults to `.ios-decompiler-mcp`
+under the workspace.
 
 For tweak builds, set `THEOS` or the config's `theos` path. For IDA, configure
 `ida_directory` and `ida_python` after completing the vendor's normal licensing
@@ -121,7 +125,7 @@ Open an allowlisted app on the unlocked phone. Call `device_connect` and
 ```json
 {
   "device_id": "test",
-  "bundle_id": "dev.flex.fixture"
+  "bundle_id": "dev.iosdecompiler.fixture"
 }
 ```
 
@@ -173,7 +177,7 @@ install and launch the fixture using that guide, then call `develop_tweak`:
 ```json
 {
   "device_id": "test",
-  "bundle_id": "dev.flex.fixture",
+  "bundle_id": "dev.iosdecompiler.fixture",
   "accessibility_identifier": "fixture.button",
   "replacement_title": "Hello iOS Decompiler MCP"
 }
@@ -189,7 +193,7 @@ At the approval stage, an operator reviews the exact operation in a separate
 terminal. Use the report's approval ID and the server's absolute state directory:
 
 ```sh
-.venv/bin/ios-decompiler-mcp-approve --state-dir /absolute/path/to/ios-decompiler-mcp/.flex-mcp approval_ID
+.venv/bin/ios-decompiler-mcp-approve --state-dir /absolute/path/to/ios-decompiler-mcp/.ios-decompiler-mcp approval_ID
 ```
 
 Resume `develop_tweak` with `workflow_id` and the granted `approval_id`.
@@ -208,7 +212,7 @@ PYTHONPATH=src .venv/bin/python examples/demo.py --config ios-decompiler-mcp.loc
 
 ```text
 ios-decompiler-mcp/
-├── src/flex_mcp/
+├── src/ios_decompiler_mcp/
 │   ├── server.py        # MCP stdio entry point
 │   ├── config.py        # Validated configuration
 │   ├── core/            # Sessions, state, approvals, jobs and evidence
@@ -224,10 +228,6 @@ ios-decompiler-mcp/
 ├── pyproject.toml
 └── uv.lock
 ```
-
-The Python namespace `flex_mcp`, default `.flex-mcp` state directory and legacy
-`flex-mcp` / `flex-mcp-approve` command aliases are retained for compatibility.
-Existing configuration files remain valid.
 
 ## Development
 
@@ -252,7 +252,7 @@ uv sync --frozen --all-extras --no-editable --reinstall-package ios-decompiler-m
 ```
 
 For a source run, use
-`PYTHONPATH=src .venv/bin/python -m flex_mcp.server --config /absolute/config.toml`.
+`PYTHONPATH=src .venv/bin/python -m ios_decompiler_mcp.server --config /absolute/config.toml`.
 Regenerate the tool catalog with
 `PYTHONPATH=src .venv/bin/python scripts/document_tools.py`.
 

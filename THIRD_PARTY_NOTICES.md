@@ -2,12 +2,12 @@
 
 Original iOS Decompiler MCP code is MIT licensed. Dependencies retain their own licenses.
 
-The compiled `src/flex_mcp/assets/agent.js` includes the unmodified official
+The compiled `src/ios_decompiler_mcp/assets/agent.js` includes the unmodified official
 [`frida-objc-bridge` 8.0.6](https://github.com/frida/frida-objc-bridge) dependency,
 maintained by Ole André Vadla Ravnås and Frida contributors. Its npm manifest
 declares `LGPL-2.0 WITH WxWindows-exception-3.1`. The full GNU Library GPL 2.0
 and wxWindows Library Licence 3.1 texts are distributed in
-`src/flex_mcp/assets/licenses/`, including in the wheel. Upstream's wxWindows
+`src/ios_decompiler_mcp/assets/licenses/`, including in the wheel. Upstream's wxWindows
 text is preserved verbatim from [Frida COPYING](https://github.com/frida/frida/blob/main/COPYING).
 The original dependency source is available from the exact npm version recorded
 with integrity hashes in `package-lock.json`; `npm ci` restores it into

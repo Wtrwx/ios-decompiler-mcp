@@ -2,9 +2,9 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from flex_mcp.app import Application
-from flex_mcp.config import Settings
-from flex_mcp.server import create_server
+from ios_decompiler_mcp.app import Application
+from ios_decompiler_mcp.config import Settings
+from ios_decompiler_mcp.server import create_server
 
 root = Path(__file__).resolve().parents[1]
 with TemporaryDirectory() as temporary:

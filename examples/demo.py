@@ -17,13 +17,13 @@ from typing import Any
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
-from flex_mcp.config import Settings
+from ios_decompiler_mcp.config import Settings
 
 
 async def demo(args: argparse.Namespace) -> None:
     settings = Settings.load(args.config)
     root = Path(__file__).resolve().parents[1]
-    parameters = StdioServerParameters(command=sys.executable, args=["-m", "flex_mcp.server", "--config", str(args.config.resolve())], env={**os.environ, "PYTHONPATH": str(root / "src")})
+    parameters = StdioServerParameters(command=sys.executable, args=["-m", "ios_decompiler_mcp.server", "--config", str(args.config.resolve())], env={**os.environ, "PYTHONPATH": str(root / "src")})
     async with stdio_client(parameters) as (read, write):
         async with ClientSession(read, write) as client:
             await client.initialize()
@@ -38,10 +38,10 @@ async def demo(args: argparse.Namespace) -> None:
                 return data
 
             def approve(approval_id: str) -> None:
-                subprocess.run([sys.executable, "-m", "flex_mcp.core.permissions", "--state-dir", str(settings.state_dir), approval_id], check=True, env={**os.environ, "PYTHONPATH": str(root / "src")})
+                subprocess.run([sys.executable, "-m", "ios_decompiler_mcp.core.permissions", "--state-dir", str(settings.state_dir), approval_id], check=True, env={**os.environ, "PYTHONPATH": str(root / "src")})
 
             print(json.dumps((await call("device_connect", {"device_id": args.device}))["data"], indent=2))
-            report = (await call("develop_tweak", {"device_id": args.device, "bundle_id": "dev.flex.fixture", "accessibility_identifier": "fixture.button", "replacement_title": "Tweaked", "background": False}))["data"]
+            report = (await call("develop_tweak", {"device_id": args.device, "bundle_id": "dev.iosdecompiler.fixture", "accessibility_identifier": "fixture.button", "replacement_title": "Tweaked", "background": False}))["data"]
             if report["phase"] != "awaiting_approval":
                 raise RuntimeError(json.dumps(report, indent=2))
             print("Inspected button action:", report["inspected_classes_and_methods"][0]["button_actions"])

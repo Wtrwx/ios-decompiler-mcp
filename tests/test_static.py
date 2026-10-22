@@ -6,8 +6,8 @@ import sys
 
 import pytest
 
-from flex_mcp.adapters.macho import correlate, inspect_macho
-from flex_mcp.core.errors import FlexError
+from ios_decompiler_mcp.adapters.macho import correlate, inspect_macho
+from ios_decompiler_mcp.core.errors import MCPError
 
 
 @pytest.fixture
@@ -23,7 +23,7 @@ def test_aslr_uuid_architecture_and_rebased_ida_mapping(metadata):
     assert mapping["ida_address"] == "0x200001234" and mapping["slide"] == "0x4000000"
     assert mapping["pac_stripped"] and not mapping["semantic_match_asserted"]
     for changed in ({"uuid": None}, {"uuid": "different"}, {"architecture": "arm64"}, {"canonical_address": "0x104010000"}):
-        with pytest.raises(FlexError) as rejected:
+        with pytest.raises(MCPError) as rejected:
             correlate(metadata, {**runtime, **changed}, 0x200000000)
         assert rejected.value.code == "IDENTITY_MISMATCH"
 
@@ -60,15 +60,15 @@ for line in sys.stdin:
         # supervisor's subprocess pipes, copied database, timeouts and cleanup.
         return await original_spawn(sys.executable, "-u", "-c", script, **kwargs)
 
-    monkeypatch.setattr("flex_mcp.adapters.ida.asyncio.create_subprocess_exec", spawn)
+    monkeypatch.setattr("ios_decompiler_mcp.adapters.ida.asyncio.create_subprocess_exec", spawn)
     opened = await app.ida.open(path)
     assert opened["macho"] is None
     assert opened["database_copy"] != str(path)
     assert await app.ida.rpc(opened["ida_session_id"], "list_functions") == {"functions": []}
-    with pytest.raises(FlexError) as out_of_sync:
+    with pytest.raises(MCPError) as out_of_sync:
         await app.ida.rpc(opened["ida_session_id"], "out_of_sync")
     assert out_of_sync.value.code == "IDA_ERROR"
-    with pytest.raises(FlexError):
+    with pytest.raises(MCPError):
         app.ida.session(opened["ida_session_id"])
     assert json.loads(app.registry.db.execute("SELECT data FROM records WHERE id=?", (opened["ida_session_id"],)).fetchone()[0])["metadata"] == {"image_base": 0}
 

@@ -6,9 +6,9 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
-from flex_mcp.adapters.debian import inspect_package
-from flex_mcp.app import Application
-from flex_mcp.core.sessions import ProcessSession, require_session
+from ios_decompiler_mcp.adapters.debian import inspect_package
+from ios_decompiler_mcp.app import Application
+from ios_decompiler_mcp.core.sessions import ProcessSession, require_session
 
 
 class FakeSSH:
@@ -69,7 +69,7 @@ class FakeFrida:
         self.wrong_title = False
 
     async def applications(self, device_id):
-        return [{"bundle_id": "dev.flex.fixture", "name": "Fixture", "pid": self.pid, "parameters": {"path": "/Applications/FLEXFixture.app"}}]
+        return [{"bundle_id": "dev.iosdecompiler.fixture", "name": "Fixture", "pid": self.pid, "parameters": {"path": "/Applications/DecompilerFixture.app"}}]
 
     async def attach(self, device_id, bundle_id, pid=None, **kwargs):
         for session in self.sessions.values():
@@ -104,17 +104,17 @@ class FakeFrida:
         self.session(device_id, session_id)
         args = arguments or {}
         view = {"view_id": session_id + ":object_1", "class_name": "UIButton", "is_button": True, "text": self.title,
-            "accessibility_identifier": "fixture.button", "controller": {"class_name": "FLEXFixtureViewController", "observed": True}, "observed": True}
+            "accessibility_identifier": "fixture.button", "controller": {"class_name": "DecompilerFixtureViewController", "observed": True}, "observed": True}
         if method in {"snapshot", "find_views"}:
             return {"views": [view], "truncated": False}
         if method == "inspect_view":
-            return {**view, "targets": [{"target_class": "FLEXFixtureViewController", "selector": "buttonTapped:", "control_event": 64, "observed": True}]}
+            return {**view, "targets": [{"target_class": "DecompilerFixtureViewController", "selector": "buttonTapped:", "control_event": 64, "observed": True}]}
         if method == "get_method_implementation":
             return {"class_name": args["class_name"], "selector": args["selector"], "type_encoding": "v20@0:8B16", "observed": True}
         if method == "dump_class":
-            return {"hierarchy": ["FLEXFixtureViewController", "UIViewController", "UIResponder", "NSObject"]}
+            return {"hierarchy": ["DecompilerFixtureViewController", "UIViewController", "UIResponder", "NSObject"]}
         if method == "identity":
-            return {"executable": "/Applications/FLEXFixture.app/FLEXFixture", "main_image": {"architecture": "arm64"}, "observed": True}
+            return {"executable": "/Applications/DecompilerFixture.app/DecompilerFixture", "main_image": {"architecture": "arm64"}, "observed": True}
         if method == "tweak_state":
             return {"loaded": bool(self.loaded), "build_marker": self.loaded["build"]["build_marker"] if self.loaded else None, "invocation_count": 1 if self.loaded else 0, "observed": True}
         raise AssertionError("Unexpected fake RPC: " + method)

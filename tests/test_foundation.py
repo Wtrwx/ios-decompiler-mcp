@@ -6,39 +6,51 @@ from pathlib import Path
 
 import pytest
 
-from flex_mcp.app import Application
-from flex_mcp.config import DeviceConfig
-from flex_mcp.core.errors import Code, FlexError
-from flex_mcp.core.evidence import redact
-from flex_mcp.core.permissions import canonical_scope
-from flex_mcp.core.registry import Registry
+from ios_decompiler_mcp.app import Application
+from ios_decompiler_mcp.config import DeviceConfig, Settings
+from ios_decompiler_mcp.core.errors import Code, MCPError
+from ios_decompiler_mcp.core.evidence import redact
+from ios_decompiler_mcp.core.permissions import canonical_scope
+from ios_decompiler_mcp.core.registry import Registry
+
+
+def test_configuration_environment_and_explicit_path_precedence(tmp_path: Path, monkeypatch):
+    environment_config = tmp_path / "environment.toml"
+    environment_config.write_text(f'workspace = "{tmp_path}"\nevent_limit = 50\n')
+    explicit_config = tmp_path / "explicit.toml"
+    explicit_config.write_text(f'workspace = "{tmp_path}"\nevent_limit = 100\n')
+    monkeypatch.setenv("IOS_DECOMPILER_MCP_CONFIG", str(environment_config))
+    settings = Settings.load()
+    assert settings.event_limit == 50
+    assert settings.state_dir == tmp_path / ".ios-decompiler-mcp"
+    assert Settings.load(explicit_config).event_limit == 100
 
 
 def test_approval_is_bound_single_use_and_cannot_be_granted_via_mcp(app: Application):
     scope = {"device_id": "test", "sha256": "abc"}
     request = app.permissions.request("install", scope)
     assert "approve" not in app.tools.tools
-    with pytest.raises(FlexError, match="Approval"):
+    with pytest.raises(MCPError, match="Approval"):
         app.permissions.require("install", scope, request["approval_id"])
     app.registry.db.execute("UPDATE approvals SET status='granted' WHERE id=?", (request["approval_id"],))
     app.registry.db.commit()
-    with pytest.raises(FlexError):
+    with pytest.raises(MCPError):
         app.permissions.require("install", {**scope, "sha256": "changed"}, request["approval_id"])
     app.permissions.require("install", scope, request["approval_id"])
-    with pytest.raises(FlexError):
+    with pytest.raises(MCPError):
         app.permissions.require("install", scope, request["approval_id"])
     assert canonical_scope({"a": 1, "b": 2}) == canonical_scope({"b": 2, "a": 1})
 
 
 def test_expired_approval_and_deny_by_default(app: Application):
-    with pytest.raises(FlexError):
+    with pytest.raises(MCPError):
         app.permissions.device("other")
-    with pytest.raises(FlexError):
+    with pytest.raises(MCPError):
         app.permissions.device("test", "com.unrelated.app")
     request = app.permissions.request("install", {})
     app.registry.db.execute("UPDATE approvals SET status='granted',expires=?", (time.time() - 1,))
     app.registry.db.commit()
-    with pytest.raises(FlexError):
+    with pytest.raises(MCPError):
         app.permissions.require("install", {}, request["approval_id"])
 
 
@@ -53,13 +65,13 @@ def test_path_and_host_key_validation(app: Application, tmp_path: Path):
     outside = tmp_path.parent / "outside"
     link = tmp_path / "escape"
     link.symlink_to(outside)
-    with pytest.raises(FlexError):
+    with pytest.raises(MCPError):
         app.permissions.local_path(link / "secret")
     with pytest.raises(ValueError):
         DeviceConfig(host="test", known_hosts=None)
-    for path in ["/etc/passwd", "/tmp/flex-mcp/../etc/passwd", "relative"]:
-        with pytest.raises(FlexError):
-            app.ssh._remote_within(path, ["/tmp/flex-mcp"])
+    for path in ["/etc/passwd", "/tmp/ios-decompiler-mcp/../etc/passwd", "relative"]:
+        with pytest.raises(MCPError):
+            app.ssh._remote_within(path, ["/tmp/ios-decompiler-mcp"])
 
 
 @pytest.mark.asyncio
@@ -68,7 +80,7 @@ async def test_tools_validate_and_return_structured_errors(app: Application):
     assert result.ok and result.data["inspection_default"] == "read_only"
     result = await app.tools.invoke("device_connect", {"device_id": "unconfigured"})
     assert not result.ok and result.error.code == Code.NOT_ALLOWED
-    result = await app.tools.invoke("frida_attach", {"device_id": "test", "bundle_id": "dev.flex.fixture", "pid": -1})
+    result = await app.tools.invoke("frida_attach", {"device_id": "test", "bundle_id": "dev.iosdecompiler.fixture", "pid": -1})
     assert result.error.code == Code.INVALID_INPUT
     result = await app.tools.invoke("does_not_exist", {})
     assert result.error.code == Code.NOT_FOUND
@@ -96,7 +108,7 @@ def test_live_handles_invalidated_but_projects_survive_restart(app: Application)
 
 
 def test_one_server_per_state_and_approval_registry_can_coexist(app: Application):
-    with pytest.raises(FlexError) as duplicate:
+    with pytest.raises(MCPError) as duplicate:
         Application(app.settings)
     assert duplicate.value.code == Code.UNAVAILABLE
     operator = Registry(app.settings.state_dir)

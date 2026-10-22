@@ -1,5 +1,9 @@
 # Implementation status and validation
 
+The fixture identifiers below belong to the artifacts originally tested. The
+current example uses `dev.iosdecompiler.fixture` and `DecompilerFixture` class
+names. Rebuild the example and tweak before testing the current source on a device.
+
 Recorded 2026-10-22. Read-only physical-device inspection passed on Douyin:
 44 actual MCP calls across 27 tools, including attachment, UIKit inspection,
 Objective-C metadata, method traces/stacks and cleanup with the same app PID.
@@ -28,10 +32,10 @@ No package was installed and no app was restarted.
   and `npm run build`: successful. The official Frida compiler builds the
   injected bundle with the pinned separate Objective-C bridge.
 - Real Theos fixture application: `dev.flex.fixture_0.1.0_iphoneos-arm64.deb`.
-  Build products are in ignored `.flex-mcp/fixture-packages/`.
+  Build products are in ignored `.ios-decompiler-mcp/fixture-packages/`.
 - Real generated title tweak: ARM64, rootless, SDK 18.1, target iOS 15.0,
   app-only `dev.flex.fixture` filter. Latest recorded package at validation:
-  `.flex-mcp/projects/project_8785cab917824954aefc01148069915d/builds/build_64077f5637c84ae4a85aa9e88937d8da/dev.flex.fixture.title_0.1.0_iphoneos-arm64.deb`.
+  `.ios-decompiler-mcp/projects/project_8785cab917824954aefc01148069915d/builds/build_64077f5637c84ae4a85aa9e88937d8da/dev.flex.fixture.title_0.1.0_iphoneos-arm64.deb`.
   SHA-256: `95b41bbb5a5184900e74779428d40d54e3993c6865dc99fd25dd971ec05d4650`.
   The build completed Logos preprocessing, compilation, linking, signing and
   packaging. A sandbox `sysctl` warning and obsolete linker flag warning were
@@ -48,7 +52,7 @@ No package was installed and no app was restarted.
 - Python wheel/source distribution build: successful. The wheel includes the
   agent and full bridge license texts. Installed-wheel MCP smoke: successful,
   started from `/private/tmp` with `PYTHONPATH` removed, discovered all 61 tools
-  and called `server_status`. The installed `flex-mcp --version` returns `0.1.0`
+  and called `server_status`. The installed `ios-decompiler-mcp --version` returns `0.1.0`
   outside the repository. This verifies actual packaging rather than an editable
   source-path import.
 
@@ -101,7 +105,7 @@ even during this successful test, so a null lookup is not a reliable readiness
 gate on this setup. Client `17.24.3` attachment was not retested after that point.
 
 Private raw MCP reports are saved under
-`.flex-mcp/douyin-device/hardware-reports/` (mode 0600). Successful reports are
+`.ios-decompiler-mcp/douyin-device/hardware-reports/` (mode 0600). Successful reports are
 `20261022T144920Z.json` and `20261022T145356Z.json`. No UI text,
 screenshots, account data or unrelated app contents were collected.
 
@@ -127,7 +131,7 @@ ssh -N -L 127.0.0.1:27043:127.0.0.1:27042 -p 12222 -o BatchMode=yes -o StrictHos
 ```
 
 ```sh
-PYTHONPATH=.venv/frida-17.5.0:src .venv/bin/python scripts/verify_device.py --config flex-mcp.local.toml --device iphone --bundle com.ss.iphone.ugc.Aweme
+PYTHONPATH=.venv/frida-17.5.0:src .venv/bin/python scripts/verify_device.py --config ios-decompiler-mcp.local.toml --device iphone --bundle com.ss.iphone.ugc.Aweme
 ```
 
 The matching-version client is isolated in `.venv/frida-17.5.0`. The normal

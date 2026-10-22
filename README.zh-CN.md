@@ -67,7 +67,7 @@ chmod 600 ios-decompiler-mcp.local.toml
 
 ```toml
 workspace = "/absolute/path/to/ios-decompiler-mcp"
-state_dir = ".flex-mcp"
+state_dir = ".ios-decompiler-mcp"
 
 [devices.test]
 host = "127.0.0.1"
@@ -75,11 +75,13 @@ port = 2222
 username = "root"
 client_keys = ["~/.ssh/id_ed25519"]
 known_hosts = "~/.ssh/known_hosts"
-allowed_apps = ["dev.flex.fixture"]
+allowed_apps = ["dev.iosdecompiler.fixture"]
 frida_device_id = "replace-with-observed-device-id"
 ```
 
 示例地址假定已建立本地 SSH 转发，请按设备实际连接方式修改。连接前应核验并固定 SSH 主机密钥。使用 `frida_list_devices` 返回的准确设备 ID。如果使用已有的安全 Frida SSH 隧道，将 `frida_device_id` 替换为 `frida_remote = "127.0.0.1:27043"`；每台设备只配置一种 Frida 连接方式。
+
+使用 `--config` 参数或 `IOS_DECOMPILER_MCP_CONFIG` 环境变量指定配置文件，`--config` 优先。状态目录默认为工作区下的 `.ios-decompiler-mcp`。
 
 构建 Tweak 时，设置 `THEOS` 环境变量或配置中的 `theos` 路径。使用 IDA 时，先完成官方许可与 Python 环境配置，再设置 `ida_directory` 和 `ida_python`。更多选项见[示例配置](examples/ios-decompiler-mcp.toml)中的注释。
 
@@ -102,7 +104,7 @@ frida_device_id = "replace-with-observed-device-id"
 ```json
 {
   "device_id": "test",
-  "bundle_id": "dev.flex.fixture"
+  "bundle_id": "dev.iosdecompiler.fixture"
 }
 ```
 
@@ -143,7 +145,7 @@ frida_device_id = "replace-with-observed-device-id"
 ```json
 {
   "device_id": "test",
-  "bundle_id": "dev.flex.fixture",
+  "bundle_id": "dev.iosdecompiler.fixture",
   "accessibility_identifier": "fixture.button",
   "replacement_title": "Hello iOS Decompiler MCP"
 }
@@ -154,7 +156,7 @@ frida_device_id = "replace-with-observed-device-id"
 到达审批阶段后，由操作者在独立终端审阅具体操作。使用报告中的审批 ID 和服务实际使用的状态目录绝对路径：
 
 ```sh
-.venv/bin/ios-decompiler-mcp-approve --state-dir /absolute/path/to/ios-decompiler-mcp/.flex-mcp approval_ID
+.venv/bin/ios-decompiler-mcp-approve --state-dir /absolute/path/to/ios-decompiler-mcp/.ios-decompiler-mcp approval_ID
 ```
 
 随后以 `workflow_id` 和已授权的 `approval_id` 再次调用 `develop_tweak` 继续执行。部署验证检查加载的构建标识、Hook 调用、实际按钮标题和可读取的崩溃证据。卸载或独立执行回滚需要单独审批。
@@ -169,7 +171,7 @@ PYTHONPATH=src .venv/bin/python examples/demo.py --config ios-decompiler-mcp.loc
 
 ```text
 ios-decompiler-mcp/
-├── src/flex_mcp/
+├── src/ios_decompiler_mcp/
 │   ├── server.py        # MCP stdio 入口
 │   ├── config.py        # 配置与校验
 │   ├── core/            # 会话、状态、审批、任务和证据
@@ -185,8 +187,6 @@ ios-decompiler-mcp/
 ├── pyproject.toml
 └── uv.lock
 ```
-
-为兼容已有使用方式，保留 Python 命名空间 `flex_mcp`、默认状态目录 `.flex-mcp` 和旧命令别名 `flex-mcp` / `flex-mcp-approve`。已有配置文件继续有效。
 
 ## 开发
 
@@ -210,7 +210,7 @@ uv sync --frozen --all-extras --no-editable --reinstall-package ios-decompiler-m
 
 直接从源码运行：
 
-`PYTHONPATH=src .venv/bin/python -m flex_mcp.server --config /absolute/config.toml`
+`PYTHONPATH=src .venv/bin/python -m ios_decompiler_mcp.server --config /absolute/config.toml`
 
 重新生成工具文档：
 

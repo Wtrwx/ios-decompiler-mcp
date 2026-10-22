@@ -5,7 +5,7 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
-.flex-mcp/
+.ios-decompiler-mcp/
 .theos/
 .fakeroot/
 dist/
@@ -14,5 +14,4 @@ build/
 *.deb
 *.dSYM/
 .DS_Store
-flex-mcp.local.toml
 ios-decompiler-mcp.local.toml

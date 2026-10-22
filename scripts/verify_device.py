@@ -20,7 +20,7 @@ import frida
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
-from flex_mcp.config import Settings
+from ios_decompiler_mcp.config import Settings
 
 
 async def verify(config: Path, device_id: str, bundle_id: str) -> None:
@@ -46,7 +46,7 @@ async def verify(config: Path, device_id: str, bundle_id: str) -> None:
 
     parameters = StdioServerParameters(
         command=sys.executable,
-        args=["-m", "flex_mcp.server", "--config", str(config.resolve())],
+        args=["-m", "ios_decompiler_mcp.server", "--config", str(config.resolve())],
         cwd=str(settings.workspace),
         env=dict(os.environ),
     )

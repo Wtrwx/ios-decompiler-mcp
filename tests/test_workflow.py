@@ -6,12 +6,12 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from flex_mcp.app import Application
-from flex_mcp.core.permissions import sha256
-from flex_mcp.core.registry import new_id
-from flex_mcp.tools.tweak import DeploymentRequest
-from flex_mcp.workflows.deployment import DeploymentService
-from flex_mcp.workflows.develop_tweak import DevelopRequest, DevelopWorkflow
+from ios_decompiler_mcp.app import Application
+from ios_decompiler_mcp.core.permissions import sha256
+from ios_decompiler_mcp.core.registry import new_id
+from ios_decompiler_mcp.tools.tweak import DeploymentRequest
+from ios_decompiler_mcp.workflows.deployment import DeploymentService
+from ios_decompiler_mcp.workflows.develop_tweak import DevelopRequest, DevelopWorkflow
 from tests.fakes import FakeFrida, FakeSSH
 from tests.test_theos import make_deb
 
@@ -43,7 +43,7 @@ def infrastructure(app: Application, project, monkeypatch):
 
 
 async def prepare(app):
-    return await DevelopWorkflow(app).run(DevelopRequest(device_id="test", bundle_id="dev.flex.fixture", accessibility_identifier="fixture.button", replacement_title="Tweaked", background=False))
+    return await DevelopWorkflow(app).run(DevelopRequest(device_id="test", bundle_id="dev.iosdecompiler.fixture", accessibility_identifier="fixture.button", replacement_title="Tweaked", background=False))
 
 
 @pytest.mark.asyncio
@@ -85,7 +85,7 @@ async def test_successful_install_without_behavior_is_not_success(app: Applicati
     approval = report["approval"]["approval_id"]
     grant(app, approval)
     frida.wrong_title = True
-    monkeypatch.setattr("flex_mcp.workflows.develop_tweak.asyncio.sleep", AsyncMock())
+    monkeypatch.setattr("ios_decompiler_mcp.workflows.develop_tweak.asyncio.sleep", AsyncMock())
     report = await DevelopWorkflow(app).run(DevelopRequest(workflow_id=report["workflow_id"], approval_id=approval, background=False))
     assert report["phase"] == "verification_failed" and not report["success"]
     assert report["verification"]["loaded"] and not report["verification"]["behavior_observed"]

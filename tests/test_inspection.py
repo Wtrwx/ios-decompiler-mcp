@@ -7,17 +7,17 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from flex_mcp.app import Application
-from flex_mcp.core.errors import FlexError
-from flex_mcp.core.objc_types import decode_encoding, header, signature
-from flex_mcp.core.sessions import ProcessSession
+from ios_decompiler_mcp.app import Application
+from ios_decompiler_mcp.core.errors import MCPError
+from ios_decompiler_mcp.core.objc_types import decode_encoding, header, signature
+from ios_decompiler_mcp.core.sessions import ProcessSession
 
 
 def test_signature_generation_rejects_ambiguous_abi():
     declaration, certain = signature("viewDidAppear:", "v20@0:8B16")
     assert declaration == "- (void)viewDidAppear:(BOOL)arg0" and certain
     assert signature("buttonTapped:", "v24@0:8@16")[0].endswith("buttonTapped:(id)arg0")
-    with pytest.raises(FlexError):
+    with pytest.raises(MCPError):
         signature("takesTwo:and:", "v24@0:8@16")
     assert not signature("unknown", "?16@0:8")[1]
     assert len(decode_encoding("{CGRect={CGPoint=dd}{CGSize=dd}}16@0:8")) == 3
@@ -41,17 +41,17 @@ async def test_ui_limits_and_session_scoping(app: Application):
     assert kwargs["depth"] == 8 and kwargs["include_text"] is False
     invalid = await app.tools.invoke("ui_snapshot", {"device_id": "test", "session_id": "process_test", "max_nodes": 100000})
     assert not invalid.ok and invalid.error.code == "INVALID_INPUT"
-    app.frida.sessions["test-session"] = ProcessSession("test-session", "test", "dev.flex.fixture", 42, SimpleNamespace())
-    with pytest.raises(FlexError):
+    app.frida.sessions["test-session"] = ProcessSession("test-session", "test", "dev.iosdecompiler.fixture", 42, SimpleNamespace())
+    with pytest.raises(MCPError):
         app.frida.session("another-device", "test-session")
     app.frida.sessions["test-session"].invalidate("process-exited", app.registry)
-    with pytest.raises(FlexError):
+    with pytest.raises(MCPError):
         app.frida.session("test", "test-session")
 
 
 @pytest.mark.asyncio
 async def test_trace_cursor_reports_overflow_and_process_exit(app: Application):
-    session = ProcessSession("test-session", "test", "dev.flex.fixture", 42, SimpleNamespace())
+    session = ProcessSession("test-session", "test", "dev.iosdecompiler.fixture", 42, SimpleNamespace())
     app.frida.sessions[session.id] = session
     for i in range(10):
         session.event({"type": "call", "hook_id": "hook1", "index": i, "password": "should never appear"}, 3)

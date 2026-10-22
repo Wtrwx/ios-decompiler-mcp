@@ -1,6 +1,6 @@
 # Copy to ios-decompiler-mcp.local.toml and set workspace to the repository's absolute path.
 workspace = "/absolute/path/to/ios-decompiler-mcp"
-state_dir = ".flex-mcp"
+state_dir = ".ios-decompiler-mcp"
 operation_timeout = 30
 build_timeout = 180
 # theos = "/absolute/path/to/theos" # defaults to THEOS
@@ -13,10 +13,10 @@ port = 2222
 username = "root"
 client_keys = ["~/.ssh/id_ed25519"]
 known_hosts = "~/.ssh/known_hosts"
-allowed_apps = ["dev.flex.fixture"]
+allowed_apps = ["dev.iosdecompiler.fixture"]
 # Set the precise USB ID shown by frida_list_devices. Do not leave a placeholder.
 frida_device_id = "replace-with-observed-usb-device-id"
 # Alternatively remove frida_device_id and use a secured local SSH-forwarded server:
 # frida_remote = "127.0.0.1:27043"
-staging_directory = "/tmp/flex-mcp"
-download_roots = ["/tmp/flex-mcp"]
+staging_directory = "/tmp/ios-decompiler-mcp"
+download_roots = ["/tmp/ios-decompiler-mcp"]

@@ -10,11 +10,11 @@ from unittest.mock import AsyncMock
 import asyncssh
 import pytest
 
-from flex_mcp.adapters.frida import FridaAdapter
-from flex_mcp.adapters.ssh import SSHAdapter
-from flex_mcp.config import DeviceConfig, Settings
-from flex_mcp.core.errors import FlexError
-from flex_mcp.core.registry import Registry
+from ios_decompiler_mcp.adapters.frida import FridaAdapter
+from ios_decompiler_mcp.adapters.ssh import SSHAdapter
+from ios_decompiler_mcp.config import DeviceConfig, Settings
+from ios_decompiler_mcp.core.errors import MCPError
+from ios_decompiler_mcp.core.registry import Registry
 
 
 @asynccontextmanager
@@ -68,10 +68,10 @@ async def test_real_ssh_public_key_pool_probe_and_limits(tmp_path):
         assert await adapter.connect("test") is first
         probe = await adapter.probe("test")
         assert probe["architecture"] == "arm64" and probe["mode"] == "rootless"
-        with pytest.raises(FlexError) as oversized:
+        with pytest.raises(MCPError) as oversized:
             await adapter._run("test", "bounded-output")
         assert oversized.value.code == "LIMIT_EXCEEDED"
-        with pytest.raises(FlexError) as timed_out:
+        with pytest.raises(MCPError) as timed_out:
             await adapter._run("test", "wait", timeout=0.05)
         assert timed_out.value.code == "TIMEOUT"
         first.close()
@@ -84,7 +84,7 @@ async def test_real_ssh_rejects_unpinned_host_key(tmp_path):
         wrong = asyncssh.generate_private_key("ssh-ed25519")
         device = adapter.settings.devices["test"]
         device.known_hosts.write_text(f"[127.0.0.1]:{device.port} " + wrong.export_public_key().decode())
-        with pytest.raises(FlexError) as rejected:
+        with pytest.raises(MCPError) as rejected:
             await adapter.connect("test")
         assert rejected.value.code == "SSH_ERROR"
 
@@ -112,16 +112,16 @@ async def test_real_sftp_atomic_transfers_and_symlink_confinement(tmp_path):
         target = tmp_path / "download.bin"
         await adapter.download("test", "/staging/artifact.bin", target)
         assert target.read_bytes() == source.read_bytes()
-        with pytest.raises(FlexError) as changed:
+        with pytest.raises(MCPError) as changed:
             await adapter.upload("test", source, "/staging/changed.bin", expected_sha256="0" * 64)
         assert changed.value.code == "IDENTITY_MISMATCH" and not (remote / "staging/changed.bin").exists()
         (remote / "outside").mkdir()
         (remote / "outside/private").write_text("do not read")
         (remote / "staging/escape").symlink_to("../outside")
-        with pytest.raises(FlexError) as escaped:
+        with pytest.raises(MCPError) as escaped:
             await adapter.download("test", "/staging/escape/private", tmp_path / "escaped")
         assert escaped.value.code == "NOT_ALLOWED" and not (tmp_path / "escaped").exists()
-        with pytest.raises(FlexError):
+        with pytest.raises(MCPError):
             await adapter.upload("test", source, "/staging/../outside/file")
 
 
@@ -142,19 +142,19 @@ async def test_frida_adapter_uses_real_session_lifecycle_with_sdk_fake(settings)
 
     def dispatch(method, args):
         if method == "initialize":
-            return {"bundle_id": "dev.flex.fixture", "pid": 42}
+            return {"bundle_id": "dev.iosdecompiler.fixture", "pid": 42}
         return {"observed": True, "method": method}
 
     script = SimpleNamespace(on=lambda event, fn: messages.update({event: fn}), load=lambda: None,
         unload=lambda: counters.update(unload=counters["unload"] + 1), exports_sync=SimpleNamespace(dispatch=dispatch))
     handle = SimpleNamespace(on=lambda event, fn: callbacks.update({event: fn}), create_script=lambda *args, **kwargs: script,
         detach=lambda: counters.update(detach=counters["detach"] + 1))
-    device = SimpleNamespace(enumerate_applications=lambda **kwargs: [SimpleNamespace(identifier="dev.flex.fixture", name="Fixture", pid=42, parameters={})], attach=lambda pid: handle)
+    device = SimpleNamespace(enumerate_applications=lambda **kwargs: [SimpleNamespace(identifier="dev.iosdecompiler.fixture", name="Fixture", pid=42, parameters={})], attach=lambda pid: handle)
     api = SimpleNamespace(__version__="17.24.3", Cancellable=Cancellable, get_device=lambda *args, **kwargs: device)
     registry = Registry(settings.state_dir)
     adapter = FridaAdapter(settings, registry, api=api)
     try:
-        session, repeated = await asyncio.gather(adapter.attach("test", "dev.flex.fixture", 42, server_version="17.24.3"), adapter.attach("test", "dev.flex.fixture", 42, server_version="17.24.3"))
+        session, repeated = await asyncio.gather(adapter.attach("test", "dev.iosdecompiler.fixture", 42, server_version="17.24.3"), adapter.attach("test", "dev.iosdecompiler.fixture", 42, server_version="17.24.3"))
         assert session["session_id"] == repeated["session_id"]
         session_id = session["session_id"]
         assert session["compatibility"]["verified"]
@@ -164,7 +164,7 @@ async def test_frida_adapter_uses_real_session_lifecycle_with_sdk_fake(settings)
         assert adapter.events("test", session_id)["events"][0]["password"] == "[REDACTED]"
         callbacks["detached"]("process-terminated")
         await asyncio.sleep(0)
-        with pytest.raises(FlexError):
+        with pytest.raises(MCPError):
             await adapter.rpc("test", session_id, "snapshot")
         await adapter.detach("test", session_id)
         assert counters == {"detach": 1, "unload": 1}
@@ -175,13 +175,13 @@ async def test_frida_adapter_uses_real_session_lifecycle_with_sdk_fake(settings)
 async def test_frida_major_version_and_wrong_pid_are_rejected(settings):
     registry = Registry(settings.state_dir)
     adapter = FridaAdapter(settings, registry, api=SimpleNamespace(__version__="17.24.3"))
-    adapter.applications = AsyncMock(return_value=[{"bundle_id": "dev.flex.fixture", "pid": 42}])
+    adapter.applications = AsyncMock(return_value=[{"bundle_id": "dev.iosdecompiler.fixture", "pid": 42}])
     try:
-        with pytest.raises(FlexError) as mismatch:
-            await adapter.attach("test", "dev.flex.fixture", server_version="16.0.0")
+        with pytest.raises(MCPError) as mismatch:
+            await adapter.attach("test", "dev.iosdecompiler.fixture", server_version="16.0.0")
         assert mismatch.value.code == "FRIDA_ERROR"
-        with pytest.raises(FlexError) as wrong_pid:
-            await adapter.attach("test", "dev.flex.fixture", pid=99, server_version="17.24.3")
+        with pytest.raises(MCPError) as wrong_pid:
+            await adapter.attach("test", "dev.iosdecompiler.fixture", pid=99, server_version="17.24.3")
         assert wrong_pid.value.code == "IDENTITY_MISMATCH"
     finally:
         registry.close()
@@ -195,11 +195,11 @@ async def test_frida_attach_failure_identifies_the_native_phase(settings):
     api = SimpleNamespace(__version__="17.24.3", Cancellable=Cancellable)
     registry = Registry(settings.state_dir)
     adapter = FridaAdapter(settings, registry, api=api)
-    adapter.applications = AsyncMock(return_value=[{"bundle_id": "dev.flex.fixture", "pid": 42}])
+    adapter.applications = AsyncMock(return_value=[{"bundle_id": "dev.iosdecompiler.fixture", "pid": 42}])
     adapter.device = AsyncMock(return_value=device)
     try:
-        with pytest.raises(FlexError) as failed:
-            await adapter.attach("test", "dev.flex.fixture", server_version="17.24.3")
+        with pytest.raises(MCPError) as failed:
+            await adapter.attach("test", "dev.iosdecompiler.fixture", server_version="17.24.3")
         assert failed.value.details["phase"] == "process_attach"
         assert failed.value.details["diagnostic"] == "timeout was reached"
         assert not adapter.sessions

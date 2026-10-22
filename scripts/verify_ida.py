@@ -6,8 +6,8 @@ import asyncio
 import json
 from pathlib import Path
 
-from flex_mcp.app import Application
-from flex_mcp.config import Settings
+from ios_decompiler_mcp.app import Application
+from ios_decompiler_mcp.config import Settings
 
 
 async def verify(args: argparse.Namespace) -> None:

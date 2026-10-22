@@ -46,8 +46,8 @@ rpc.exports = {
       if (name === "tweak_state") {
         const module = Process.findModuleByName(args.module_name);
         if (!module) return { loaded: false, observed: true };
-        const marker = module.findExportByName("FLEXMCPBuildID");
-        const count = module.findExportByName("FLEXMCPInvocationCount");
+        const marker = module.findExportByName("IOSDecompilerMCPBuildID");
+        const count = module.findExportByName("IOSDecompilerMCPInvocationCount");
         let buildMarker = "";
         if (marker) for (let i = 0; i < 80; i++) { const byte = marker.add(i).readU8(); if (!byte) break; if (byte > 127) throw new Error("Invalid build marker"); buildMarker += String.fromCharCode(byte); }
         return { loaded: true, path: module.path, build_marker: marker ? buildMarker : null,

@@ -4,6 +4,8 @@ from __future__ import annotations
 import asyncio
 import os
 import sys
+from importlib.metadata import distribution
+from importlib.resources import files
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -12,6 +14,10 @@ from mcp.client.stdio import stdio_client
 
 
 async def smoke() -> None:
+    package = distribution("ios-decompiler-mcp")
+    commands = {entry.name for entry in package.entry_points if entry.group == "console_scripts"}
+    assert commands == {"ios-decompiler-mcp", "ios-decompiler-mcp-approve"}
+    assert files("ios_decompiler_mcp").joinpath("assets/agent.js").is_file()
     with TemporaryDirectory() as directory:
         config = Path(directory) / "config.toml"
         config.write_text(f'workspace = "{directory}"\nstate_dir = "{directory}/state"\n')
