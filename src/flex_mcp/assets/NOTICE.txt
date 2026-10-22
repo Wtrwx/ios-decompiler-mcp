@@ -1,0 +1,6 @@
+The agent.js bundle includes frida-objc-bridge 8.0.6, by Ole André Vadla Ravnås
+and Frida contributors, licensed LGPL-2.0 WITH WxWindows-exception-3.1.
+See licenses/LGPL-2.0.txt and licenses/wxWindows-3.1.txt.
+Source: https://github.com/frida/frida-objc-bridge and the exact npm package
+recorded in package-lock.json. Rebuild with npm ci && npm run build.
+Original iOS Decompiler MCP code is MIT licensed; see the distribution LICENSE.

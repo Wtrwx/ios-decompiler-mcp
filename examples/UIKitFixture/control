@@ -1,0 +1,9 @@
+Package: dev.flex.fixture
+Name: FLEX UIKit Fixture
+Version: 0.1.0
+Architecture: iphoneos-arm64
+Description: Deterministic operator-controlled UIKit test application for iOS Decompiler MCP
+Maintainer: iOS Decompiler MCP Operator
+Author: iOS Decompiler MCP Contributors
+Section: Development
+Depends: firmware (>= 15.0)

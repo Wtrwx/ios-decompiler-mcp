@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ios-decompiler-mcp"
+version = "0.1.0"
+description = "Agent-native inspection and Logos development for authorized jailbroken iOS devices"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+  "mcp>=1.20,<2",
+  "asyncssh>=2.21,<3",
+  "pydantic>=2.11,<3",
+]
+
+[project.optional-dependencies]
+device = ["frida>=17.5,<18"]
+static = ["lief>=0.17,<0.18"]
+
+[project.scripts]
+ios-decompiler-mcp = "flex_mcp.server:main"
+ios-decompiler-mcp-approve = "flex_mcp.core.permissions:main"
+flex-mcp = "flex_mcp.server:main"
+flex-mcp-approve = "flex_mcp.core.permissions:main"
+
+[dependency-groups]
+dev = ["pytest>=8.3,<10", "pytest-asyncio>=1,<2", "ruff>=0.14,<1", "mypy>=1.18,<2"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/flex_mcp"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+markers = ["hardware: requires an explicitly configured physical iOS device", "ida: requires a licensed IDA installation", "theos: requires a working local Theos toolchain"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
+ignore = ["E501", "ASYNC109", "ASYNC240"]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src/flex_mcp"]
+check_untyped_defs = true
+disallow_untyped_defs = true
+warn_unused_ignores = true
+no_implicit_optional = true
+
+[[tool.mypy.overrides]]
+module = ["frida", "lief", "idapro", "idautils", "ida_auto", "ida_funcs", "ida_ida", "ida_idaapi", "ida_lines", "ida_name", "ida_nalt", "ida_hexrays"]
+ignore_missing_imports = true

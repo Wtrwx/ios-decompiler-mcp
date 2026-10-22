@@ -1,0 +1,17 @@
+{
+  "name": "ios-decompiler-mcp-agents",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": ".venv/bin/python scripts/build_agent.py",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "frida-objc-bridge": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/frida-gum": "^19.0.0",
+    "typescript": "^5.9.0"
+  }
+}
