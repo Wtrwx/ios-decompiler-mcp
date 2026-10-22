@@ -1,4 +1,4 @@
-# iOS Decompiler MCP implementation plan
+# vesper implementation plan
 
 Implemented in this order. See [validation and limitations](VALIDATION.md) for
 executed checks and the physical-device work that remains unverified.

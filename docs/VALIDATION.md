@@ -1,5 +1,66 @@
 # Implementation status and validation
 
+## 2026-10-23 Vesper platform
+
+The package/CLI is `vesper`, MCP display name **Vesper iOS**, client key `vesper`.
+No legacy import/CLI entry points are shipped. The default focused catalog exposes
+**19 tools**, with **70** validated primitives available through `platform_tool`
+or `tool_profile="full"`. Catalog response sizes: 42,141 / 129,544 UTF-8 bytes.
+
+Host checks: **92 Python tests**, **17 production-agent tests**, Ruff, mypy,
+TypeScript typecheck, locked dependency installation and agent build pass.
+Wheel/sdist build and installed-wheel stdio verification pass. The wheel contains
+the compiled agent, LLDB worker and third-party licenses; the source archive
+includes the Agent Skill. The installed server starts outside the source tree
+and exposes 19 focused tools. The new local Codex `vesper` configuration was
+also launched directly: `Vesper iOS` returned a native image from the phone
+(one cold request, 7209.74 ms MCP round trip; not a statistical speed claim).
+Its final agent SHA-256 is
+`7a5113a04242c03899ddca9bcbbd8a00d162e68b94b1431463c35a94463c223f`.
+The Agent Skill passes skill-creator's validator. New tests cover session/PID
+changes, probe invalidation, immutable pages, retain/lease pressure/expiry, image
+content, logs/ring cursors, debugger cancellation/detach, component installation,
+static header cache invalidation and decryption transfer/verification/cancellation.
+
+Physical checks on the configured iPhone/iOS 16.0 and Frida 17.5.0:
+
+- Current agent: 20 consecutive native screenshots, one app session; no repeated
+  attach or application enumeration after setup. Fresh pages make zero UI RPCs.
+  Native image bytes match local PNGs. Object expiry changed 9 retained objects
+  to 0; idle cleanup passed. See [measured performance](CAPTURE_PERFORMANCE.md).
+- Earlier UI operation: an observed AWEButton dispatched its control event and
+  navigation back popped the resulting page, reusing the same session. Read-only
+  assertion/wait batches, selected scalar ivars, mixed object handles and bounded
+  heap queries passed. Physical text input and scrolling remain unmeasured;
+  their UIKit semantics are covered by agent tests.
+- Real app log ring started with partial-symbol reporting, bounded at 100 while
+  thousands of records arrived, supported filtered cursor reads, and stopped.
+  Frida register/backtrace reads work. os_log entries are format strings;
+  encoded arguments are not expanded. This is not system-wide log history.
+- Apple debugserver was installed from local Xcode iOS support and executes its
+  version command. Both this copy and the device's pre-existing XcodeAnyDebug
+  binary crash with SIGSEGV during attach on this setup. LLDB inspection therefore
+  remains **unavailable on this device**, despite component availability. The app
+  was resumed and Frida responsiveness checked after failures. Host LLDB worker
+  loading, error/cancel cleanup and detach semantics are tested separately.
+- The app's 276,080-byte main executable was dumped through the reused Frida/SSH
+  path, checked for zero encryption IDs and matching UUID, then processed by the
+  actual host classdumpc. The same file opened in licensed IDA, passed database
+  input SHA-256 verification, and returned functions/disassembly/Hex-Rays output.
+  This validates the launcher pipeline; it does not claim that all app framework
+  code or extensions were dumped. Loaded app modules can be selected explicitly.
+
+The reusable [vesper-ios skill](../skills/vesper-ios/SKILL.md) covers backend
+selection, decryption + classdumpc/IDA/runtime chains, SSH builds/installation,
+regression checks, and Frida/log fallbacks when LLDB cannot attach. A remote
+Theos build host and a newly installed device tweak are not verified by these
+platform checks. DYYY source has not been modified by the platform changes.
+
+The following sections retain the earlier record. Their counts and remaining
+checks describe the 2026-10-22 version, not the current capture implementation.
+
+## Earlier validation record
+
 The fixture identifiers below belong to the artifacts originally tested. The
 current example uses `dev.iosdecompiler.fixture` and `DecompilerFixture` class
 names. Rebuild the example and tweak before testing the current source on a device.

@@ -6,12 +6,12 @@ from pathlib import Path
 
 import pytest
 
-from ios_decompiler_mcp.app import Application
-from ios_decompiler_mcp.config import DeviceConfig, Settings
-from ios_decompiler_mcp.core.errors import Code, MCPError
-from ios_decompiler_mcp.core.evidence import redact
-from ios_decompiler_mcp.core.permissions import canonical_scope
-from ios_decompiler_mcp.core.registry import Registry
+from vesper.app import Application
+from vesper.config import DeviceConfig, Settings
+from vesper.core.errors import Code, MCPError
+from vesper.core.evidence import redact
+from vesper.core.permissions import canonical_scope
+from vesper.core.registry import Registry
 
 
 def test_configuration_environment_and_explicit_path_precedence(tmp_path: Path, monkeypatch):
@@ -19,10 +19,10 @@ def test_configuration_environment_and_explicit_path_precedence(tmp_path: Path, 
     environment_config.write_text(f'workspace = "{tmp_path}"\nevent_limit = 50\n')
     explicit_config = tmp_path / "explicit.toml"
     explicit_config.write_text(f'workspace = "{tmp_path}"\nevent_limit = 100\n')
-    monkeypatch.setenv("IOS_DECOMPILER_MCP_CONFIG", str(environment_config))
+    monkeypatch.setenv("VESPER_CONFIG", str(environment_config))
     settings = Settings.load()
     assert settings.event_limit == 50
-    assert settings.state_dir == tmp_path / ".ios-decompiler-mcp"
+    assert settings.state_dir == tmp_path / ".vesper"
     assert Settings.load(explicit_config).event_limit == 100
 
 
@@ -69,9 +69,9 @@ def test_path_and_host_key_validation(app: Application, tmp_path: Path):
         app.permissions.local_path(link / "secret")
     with pytest.raises(ValueError):
         DeviceConfig(host="test", known_hosts=None)
-    for path in ["/etc/passwd", "/tmp/ios-decompiler-mcp/../etc/passwd", "relative"]:
+    for path in ["/etc/passwd", "/tmp/vesper/../etc/passwd", "relative"]:
         with pytest.raises(MCPError):
-            app.ssh._remote_within(path, ["/tmp/ios-decompiler-mcp"])
+            app.ssh._remote_within(path, ["/tmp/vesper"])
 
 
 @pytest.mark.asyncio

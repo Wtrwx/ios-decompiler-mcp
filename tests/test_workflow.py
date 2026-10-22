@@ -6,14 +6,14 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from ios_decompiler_mcp.app import Application
-from ios_decompiler_mcp.core.permissions import sha256
-from ios_decompiler_mcp.core.registry import new_id
-from ios_decompiler_mcp.tools.tweak import DeploymentRequest
-from ios_decompiler_mcp.workflows.deployment import DeploymentService
-from ios_decompiler_mcp.workflows.develop_tweak import DevelopRequest, DevelopWorkflow
 from tests.fakes import FakeFrida, FakeSSH
 from tests.test_theos import make_deb
+from vesper.app import Application
+from vesper.core.permissions import sha256
+from vesper.core.registry import new_id
+from vesper.tools.tweak import DeploymentRequest
+from vesper.workflows.deployment import DeploymentService
+from vesper.workflows.develop_tweak import DevelopRequest, DevelopWorkflow
 
 
 def grant(app: Application, approval_id: str):
@@ -85,7 +85,7 @@ async def test_successful_install_without_behavior_is_not_success(app: Applicati
     approval = report["approval"]["approval_id"]
     grant(app, approval)
     frida.wrong_title = True
-    monkeypatch.setattr("ios_decompiler_mcp.workflows.develop_tweak.asyncio.sleep", AsyncMock())
+    monkeypatch.setattr("vesper.workflows.develop_tweak.asyncio.sleep", AsyncMock())
     report = await DevelopWorkflow(app).run(DevelopRequest(workflow_id=report["workflow_id"], approval_id=approval, background=False))
     assert report["phase"] == "verification_failed" and not report["success"]
     assert report["verification"]["loaded"] and not report["verification"]["behavior_observed"]

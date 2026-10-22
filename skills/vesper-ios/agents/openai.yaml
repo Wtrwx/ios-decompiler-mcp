@@ -1,0 +1,4 @@
+interface:
+  display_name: "Vesper iOS"
+  short_description: "Inspect iOS apps, debug tweaks, and run UIKit tests"
+  default_prompt: "Use $vesper-ios to inspect the current app and verify my tweak with a focused regression test."

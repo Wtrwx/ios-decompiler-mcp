@@ -1,0 +1,1036 @@
+{
+  "recorded": "2026-10-23",
+  "baseline_commit": "8e6e4f9a16ee2fbf6f7959a2a2a3070e5ad403f6",
+  "notes": [
+    "All measurements use a real device; timings vary with the forwarded connection.",
+    "MCP stdio client timings exclude model scheduling and viewer display.",
+    "Current-reuse uses a different UI frame; its PNG size is not a same-content comparison.",
+    "Warm setup counts are included in backend counts but setup latency is excluded from sample summaries."
+  ],
+  "measurements": {
+    "before-legacy": {
+      "summary": {
+        "client_ms": {
+          "n": 20,
+          "min": 3575.917958864011,
+          "mean": 3833.509164629504,
+          "p50": 3718.4254160383716,
+          "p95": 3943.437709007412
+        },
+        "server_ms": {
+          "n": 20,
+          "min": 3518.1,
+          "mean": 3760.6004999999996,
+          "p50": 3635.18,
+          "p95": 3869.42
+        },
+        "response_bytes": {
+          "n": 20,
+          "min": 2622058,
+          "mean": 2622061.5,
+          "p50": 2622062,
+          "p95": 2622062
+        },
+        "calls_per_sample": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      "agent_sha256": null,
+      "stages_ms": null,
+      "backend_counts": {
+        "app_enumerations": 40,
+        "ssh_commands": 20,
+        "rpc": 20,
+        "rpc_screenshot": 20,
+        "sessions_created": 20
+      }
+    },
+    "after-cold": {
+      "summary": {
+        "client_ms": {
+          "n": 20,
+          "min": 4966.367457993329,
+          "mean": 5803.512554208282,
+          "p50": 5425.128750037402,
+          "p95": 7516.5081669110805
+        },
+        "server_ms": {
+          "n": 20,
+          "min": 4918.85,
+          "mean": 5755.744000000001,
+          "p50": 5381.28,
+          "p95": 7473.76
+        },
+        "response_bytes": {
+          "n": 20,
+          "min": 2618777,
+          "mean": 2618780.0,
+          "p50": 2618780,
+          "p95": 2618781
+        },
+        "calls_per_sample": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      "agent_sha256": null,
+      "stages_ms": null,
+      "backend_counts": {
+        "ssh_commands": 1,
+        "app_enumerations": 20,
+        "rpc": 20,
+        "rpc_capture": 20,
+        "sessions_created": 20
+      }
+    },
+    "after-reuse": {
+      "summary": {
+        "client_ms": {
+          "n": 20,
+          "min": 3529.618208995089,
+          "mean": 4166.507214558078,
+          "p50": 4077.993583981879,
+          "p95": 4725.338416057639
+        },
+        "server_ms": {
+          "n": 20,
+          "min": 3485.49,
+          "mean": 4120.955,
+          "p50": 4016.25,
+          "p95": 4676.81
+        },
+        "response_bytes": {
+          "n": 20,
+          "min": 2618777,
+          "mean": 2618779.7,
+          "p50": 2618780,
+          "p95": 2618780
+        },
+        "calls_per_sample": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      "agent_sha256": null,
+      "stages_ms": null,
+      "backend_counts": {
+        "ssh_commands": 1,
+        "app_enumerations": 1,
+        "rpc": 21,
+        "rpc_capture": 21,
+        "sessions_created": 1
+      }
+    },
+    "before-pages": {
+      "summary": {
+        "client_ms": {
+          "n": 20,
+          "min": 1134.864415973425,
+          "mean": 1640.759347792482,
+          "p50": 1407.9898310592398,
+          "p95": 2377.6400829665363
+        },
+        "server_ms": {
+          "n": 20,
+          "min": 1093.83,
+          "mean": 1594.149,
+          "p50": 1364.85,
+          "p95": 2330.63
+        },
+        "response_bytes": {
+          "n": 20,
+          "min": 15980,
+          "mean": 16049.85,
+          "p50": 15984,
+          "p95": 15984
+        },
+        "calls_per_sample": [
+          6,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ]
+      },
+      "agent_sha256": null,
+      "stages_ms": null,
+      "backend_counts": {
+        "ssh_commands": 1,
+        "app_enumerations": 1,
+        "rpc": 100,
+        "rpc_snapshot": 100,
+        "sessions_created": 1
+      }
+    },
+    "after-pages": {
+      "summary": {
+        "client_ms": {
+          "n": 20,
+          "min": 174.6014169184491,
+          "mean": 443.44092090032063,
+          "p50": 277.85879105795175,
+          "p95": 333.70678999926895
+        },
+        "server_ms": {
+          "n": 20,
+          "min": 146.72,
+          "mean": 410.34,
+          "p50": 251.86,
+          "p95": 303.4
+        },
+        "response_bytes": {
+          "n": 20,
+          "min": 5238,
+          "mean": 5276.9,
+          "p50": 5240,
+          "p95": 5241
+        },
+        "calls_per_sample": [
+          6,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ]
+      },
+      "agent_sha256": null,
+      "stages_ms": null,
+      "backend_counts": {
+        "ssh_commands": 1,
+        "app_enumerations": 1,
+        "rpc": 20,
+        "rpc_snapshot": 20,
+        "sessions_created": 1
+      }
+    },
+    "final-cold-original": {
+      "summary": {
+        "client_ms": {
+          "n": 20,
+          "min": 5045.667833881453,
+          "mean": 5737.136992102023,
+          "p50": 5268.156416947022,
+          "p95": 9401.779166888446
+        },
+        "server_ms": {
+          "n": 20,
+          "min": 4924.63,
+          "mean": 5607.753,
+          "p50": 5127.22,
+          "p95": 9270.369999999999
+        },
+        "response_bytes": {
+          "n": 20,
+          "min": 2622098,
+          "mean": 2622101.1,
+          "p50": 2622102,
+          "p95": 2622102
+        },
+        "startup_to_first_result_ms": {
+          "n": 20,
+          "min": 5259.010874899104,
+          "mean": 5971.564481040696,
+          "p50": 5496.091666049324,
+          "p95": 9726.788999978453
+        },
+        "calls_per_sample": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      "agent_sha256": null,
+      "stages_ms": {},
+      "backend_counts": {
+        "app_enumerations": 40,
+        "ssh_commands": 20,
+        "rpc": 20,
+        "rpc_screenshot": 20,
+        "sessions_created": 20
+      }
+    },
+    "final-reuse-original": {
+      "summary": {
+        "client_ms": {
+          "n": 20,
+          "min": 4625.762167037465,
+          "mean": 5080.519202206051,
+          "p50": 4948.695666971616,
+          "p95": 5807.225041906349
+        },
+        "server_ms": {
+          "n": 20,
+          "min": 4582.62,
+          "mean": 5031.085,
+          "p50": 4898.89,
+          "p95": 5762.73
+        },
+        "response_bytes": {
+          "n": 20,
+          "min": 2618878,
+          "mean": 2618878.0,
+          "p50": 2618878,
+          "p95": 2618878
+        }
+      },
+      "agent_sha256": null,
+      "stages_ms": {},
+      "backend_counts": {
+        "ssh_commands": 4,
+        "app_enumerations": 4,
+        "rpc": 20,
+        "rpc_screenshot": 20,
+        "sessions_created": 4
+      }
+    },
+    "final-reuse-binary": {
+      "summary": {
+        "client_ms": {
+          "n": 20,
+          "min": 2322.7541249943897,
+          "mean": 4072.022387391189,
+          "p50": 4096.07233304996,
+          "p95": 4489.1746250214055
+        },
+        "server_ms": {
+          "n": 20,
+          "min": 2281.87,
+          "mean": 4025.2169999999996,
+          "p50": 4050.04,
+          "p95": 4441.91
+        },
+        "response_bytes": {
+          "n": 20,
+          "min": 2618847,
+          "mean": 2618848.5,
+          "p50": 2618849,
+          "p95": 2618850
+        }
+      },
+      "agent_sha256": null,
+      "stages_ms": {
+        "image_content": {
+          "n": 20,
+          "min": 2.452,
+          "mean": 4.3027500000000005,
+          "p50": 3.88,
+          "p95": 6.776
+        },
+        "main_queue": {
+          "n": 20,
+          "min": 0,
+          "mean": 1.3,
+          "p50": 1,
+          "p95": 2
+        },
+        "execution": {
+          "n": 20,
+          "min": 262,
+          "mean": 282.95,
+          "p50": 283,
+          "p95": 291
+        },
+        "render": {
+          "n": 20,
+          "min": 155,
+          "mean": 167.05,
+          "p50": 167,
+          "p95": 175
+        },
+        "decode_and_save": {
+          "n": 20,
+          "min": 0.78,
+          "mean": 1.55325,
+          "p50": 1.307,
+          "p95": 2.674
+        },
+        "rpc_total": {
+          "n": 20,
+          "min": 2280.59,
+          "mean": 4023.2185,
+          "p50": 4048.422,
+          "p95": 4440.184
+        },
+        "png_encode": {
+          "n": 20,
+          "min": 96,
+          "mean": 98.2,
+          "p50": 98,
+          "p95": 102
+        },
+        "payload_prepare": {
+          "n": 20,
+          "min": 0,
+          "mean": 0.55,
+          "p50": 1,
+          "p95": 1
+        }
+      },
+      "backend_counts": {
+        "ssh_commands": 4,
+        "app_enumerations": 4,
+        "rpc": 24,
+        "rpc_capture": 24,
+        "sessions_created": 4
+      }
+    },
+    "final-reuse-base64": {
+      "summary": {
+        "client_ms": {
+          "n": 20,
+          "min": 4644.56079096999,
+          "mean": 5023.735162452795,
+          "p50": 4947.2296660533175,
+          "p95": 5277.251666993834
+        },
+        "server_ms": {
+          "n": 20,
+          "min": 4608.11,
+          "mean": 4984.5735,
+          "p50": 4912.6,
+          "p95": 5242.83
+        },
+        "response_bytes": {
+          "n": 20,
+          "min": 2618849,
+          "mean": 2618849.95,
+          "p50": 2618850,
+          "p95": 2618851
+        }
+      },
+      "agent_sha256": null,
+      "stages_ms": {
+        "image_content": {
+          "n": 20,
+          "min": 2.352,
+          "mean": 3.0856000000000003,
+          "p50": 2.833,
+          "p95": 4.269
+        },
+        "main_queue": {
+          "n": 20,
+          "min": 0,
+          "mean": 1.2,
+          "p50": 1,
+          "p95": 2
+        },
+        "execution": {
+          "n": 20,
+          "min": 298,
+          "mean": 307.9,
+          "p50": 308,
+          "p95": 315
+        },
+        "render": {
+          "n": 20,
+          "min": 164,
+          "mean": 168.55,
+          "p50": 168,
+          "p95": 174
+        },
+        "decode_and_save": {
+          "n": 20,
+          "min": 3.023,
+          "mean": 4.94125,
+          "p50": 4.45,
+          "p95": 6.849
+        },
+        "rpc_total": {
+          "n": 20,
+          "min": 4603.019,
+          "mean": 4979.0139,
+          "p50": 4908.046,
+          "p95": 5238.228
+        },
+        "png_encode": {
+          "n": 20,
+          "min": 96,
+          "mean": 98.5,
+          "p50": 98,
+          "p95": 102
+        },
+        "payload_prepare": {
+          "n": 20,
+          "min": 22,
+          "mean": 23.05,
+          "p50": 23,
+          "p95": 24
+        }
+      },
+      "backend_counts": {
+        "ssh_commands": 4,
+        "app_enumerations": 4,
+        "rpc": 24,
+        "rpc_capture": 24,
+        "sessions_created": 4
+      }
+    },
+    "release-cold/original": {
+      "summary": {
+        "client_ms": {
+          "n": 20,
+          "min": 7674.442165996879,
+          "mean": 9014.760635141283,
+          "p50": 8704.855165909976,
+          "p95": 10959.364000009373
+        },
+        "server_ms": {
+          "n": 20,
+          "min": 7543.84,
+          "mean": 8880.4925,
+          "p50": 8571.22,
+          "p95": 10808.43
+        },
+        "response_bytes": {
+          "n": 20,
+          "min": 2622106,
+          "mean": 2622107.7,
+          "p50": 2622108,
+          "p95": 2622108
+        },
+        "calls_per_sample": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "startup_to_first_result_ms": {
+          "n": 20,
+          "min": 7897.87849993445,
+          "mean": 9285.556283360347,
+          "p50": 9013.573125004768,
+          "p95": 11280.631458037533
+        }
+      },
+      "agent_sha256": "570e2a96f6331015566530294378f36cd6685956e69e1acc67d43c41473a7f60",
+      "stages_ms": {},
+      "backend_counts": {
+        "app_enumerations": 40,
+        "ssh_commands": 20,
+        "rpc": 20,
+        "rpc_screenshot": 20,
+        "sessions_created": 20
+      }
+    },
+    "release-cold/binary": {
+      "summary": {
+        "client_ms": {
+          "n": 20,
+          "min": 6108.574707992375,
+          "mean": 7061.927481152816,
+          "p50": 6495.28425000608,
+          "p95": 8103.360332897864
+        },
+        "server_ms": {
+          "n": 20,
+          "min": 5998.86,
+          "mean": 6946.1435,
+          "p50": 6383.26,
+          "p95": 7985.24
+        },
+        "response_bytes": {
+          "n": 20,
+          "min": 2618862,
+          "mean": 2618863.1,
+          "p50": 2618863,
+          "p95": 2618864
+        },
+        "calls_per_sample": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "startup_to_first_result_ms": {
+          "n": 20,
+          "min": 6340.123875066638,
+          "mean": 7300.890585541492,
+          "p50": 6719.897958915681,
+          "p95": 8335.720374947414
+        }
+      },
+      "agent_sha256": "0e80c0bdd69ed87d8e636a03748ba8ecc98ef477098915ecbf2c6949ae08b30e",
+      "stages_ms": {
+        "decode_and_save": {
+          "n": 20,
+          "min": 0.858,
+          "mean": 1.5223,
+          "p50": 1.346,
+          "p95": 2.53
+        },
+        "png_encode": {
+          "n": 20,
+          "min": 97,
+          "mean": 99.6,
+          "p50": 99,
+          "p95": 103
+        },
+        "payload_prepare": {
+          "n": 20,
+          "min": 0,
+          "mean": 0.3,
+          "p50": 0,
+          "p95": 1
+        },
+        "rpc_total": {
+          "n": 20,
+          "min": 3103.182,
+          "mean": 3919.02445,
+          "p50": 3447.333,
+          "p95": 4581.146
+        },
+        "execution": {
+          "n": 20,
+          "min": 281,
+          "mean": 289.7,
+          "p50": 289,
+          "p95": 300
+        },
+        "render": {
+          "n": 20,
+          "min": 164,
+          "mean": 171.95,
+          "p50": 171,
+          "p95": 182
+        },
+        "main_queue": {
+          "n": 20,
+          "min": 0,
+          "mean": 1.25,
+          "p50": 1,
+          "p95": 2
+        },
+        "image_content": {
+          "n": 20,
+          "min": 4.089,
+          "mean": 5.6396,
+          "p50": 5.375,
+          "p95": 7.412
+        }
+      },
+      "backend_counts": {
+        "ssh_commands": 20,
+        "app_enumerations": 20,
+        "rpc": 20,
+        "rpc_capture": 20,
+        "sessions_created": 20
+      }
+    },
+    "release-reuse": {
+      "summary": {
+        "client_ms": {
+          "n": 20,
+          "min": 3235.7800418976694,
+          "mean": 3810.1135730568785,
+          "p50": 3454.605916980654,
+          "p95": 4423.336792038754
+        },
+        "server_ms": {
+          "n": 20,
+          "min": 3193.02,
+          "mean": 3760.2110000000002,
+          "p50": 3400.86,
+          "p95": 4386.92
+        },
+        "response_bytes": {
+          "n": 20,
+          "min": 2618839,
+          "mean": 2618840.6,
+          "p50": 2618841,
+          "p95": 2618841
+        },
+        "calls_per_sample": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      "agent_sha256": "800c7100a62eacf373e5bf8ed4a7ee6ed0bd712954a9c12e76de0abbdfd8b330",
+      "stages_ms": {
+        "image_content": {
+          "n": 20,
+          "min": 2.706,
+          "mean": 5.1759,
+          "p50": 5.617,
+          "p95": 7.19
+        },
+        "payload_prepare": {
+          "n": 20,
+          "min": 0,
+          "mean": 0.45,
+          "p50": 0,
+          "p95": 1
+        },
+        "execution": {
+          "n": 20,
+          "min": 274,
+          "mean": 285.9,
+          "p50": 285,
+          "p95": 298
+        },
+        "png_encode": {
+          "n": 20,
+          "min": 96,
+          "mean": 98.3,
+          "p50": 97,
+          "p95": 101
+        },
+        "decode_and_save": {
+          "n": 20,
+          "min": 0.587,
+          "mean": 1.7873,
+          "p50": 1.698,
+          "p95": 2.772
+        },
+        "rpc_total": {
+          "n": 20,
+          "min": 3190.159,
+          "mean": 3758.0407,
+          "p50": 3397.75,
+          "p95": 4385.094
+        },
+        "render": {
+          "n": 20,
+          "min": 161,
+          "mean": 168.7,
+          "p50": 168,
+          "p95": 173
+        },
+        "main_queue": {
+          "n": 20,
+          "min": 0,
+          "mean": 1.4,
+          "p50": 2,
+          "p95": 2
+        }
+      },
+      "backend_counts": {
+        "ssh_commands": 1,
+        "app_enumerations": 1,
+        "rpc": 21,
+        "rpc_capture": 21,
+        "sessions_created": 1
+      }
+    },
+    "release-pages": {
+      "summary": {
+        "client_ms": {
+          "n": 20,
+          "min": 192.98628997057676,
+          "mean": 445.0040646654088,
+          "p50": 295.4084171215072,
+          "p95": 327.4282511556521
+        },
+        "server_ms": {
+          "n": 20,
+          "min": 179.72,
+          "mean": 413.3974999999999,
+          "p50": 267.59000000000003,
+          "p95": 300.84000000000003
+        },
+        "response_bytes": {
+          "n": 20,
+          "min": 5236,
+          "mean": 5277.0,
+          "p50": 5240,
+          "p95": 5241
+        },
+        "calls_per_sample": [
+          6,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ]
+      },
+      "agent_sha256": "800c7100a62eacf373e5bf8ed4a7ee6ed0bd712954a9c12e76de0abbdfd8b330",
+      "stages_ms": {},
+      "backend_counts": {
+        "ssh_commands": 1,
+        "app_enumerations": 1,
+        "rpc": 20,
+        "rpc_snapshot": 20,
+        "sessions_created": 1
+      }
+    },
+    "current-reuse": {
+      "summary": {
+        "client_ms": {
+          "n": 20,
+          "min": 2559.30362502113,
+          "mean": 3553.432264563162,
+          "p50": 3579.9710830906406,
+          "p95": 4283.138792030513
+        },
+        "server_ms": {
+          "n": 20,
+          "min": 2529.62,
+          "mean": 3511.2050000000004,
+          "p50": 3536.99,
+          "p95": 4245.18
+        },
+        "response_bytes": {
+          "n": 20,
+          "min": 2318980,
+          "mean": 2318980.5,
+          "p50": 2318980,
+          "p95": 2318981
+        },
+        "calls_per_sample": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      "agent_sha256": "12b3ac3bd4e9802db416461eb33ab23aed1c05d6af46268dd3720c5fc7303ac0",
+      "stages_ms": {
+        "execution": {
+          "n": 20,
+          "min": 274,
+          "mean": 278.4,
+          "p50": 278,
+          "p95": 282
+        },
+        "render": {
+          "n": 20,
+          "min": 161,
+          "mean": 164.9,
+          "p50": 164,
+          "p95": 169
+        },
+        "rpc_total": {
+          "n": 20,
+          "min": 2528.166,
+          "mean": 3509.05185,
+          "p50": 3533.216,
+          "p95": 4243.227
+        },
+        "image_content": {
+          "n": 20,
+          "min": 1.978,
+          "mean": 4.6528,
+          "p50": 5.005,
+          "p95": 6.209
+        },
+        "main_queue": {
+          "n": 20,
+          "min": 1,
+          "mean": 1.5,
+          "p50": 1,
+          "p95": 2
+        },
+        "png_encode": {
+          "n": 20,
+          "min": 91,
+          "mean": 91.8,
+          "p50": 92,
+          "p95": 93
+        },
+        "decode_and_save": {
+          "n": 20,
+          "min": 0.65,
+          "mean": 1.8073000000000001,
+          "p50": 1.599,
+          "p95": 3.392
+        },
+        "payload_prepare": {
+          "n": 20,
+          "min": 0,
+          "mean": 0.3,
+          "p50": 0,
+          "p95": 1
+        }
+      },
+      "backend_counts": {
+        "ssh_commands": 1,
+        "app_enumerations": 1,
+        "rpc": 21,
+        "rpc_capture": 21,
+        "sessions_created": 1
+      }
+    }
+  }
+}

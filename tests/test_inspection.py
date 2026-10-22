@@ -7,10 +7,10 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from ios_decompiler_mcp.app import Application
-from ios_decompiler_mcp.core.errors import MCPError
-from ios_decompiler_mcp.core.objc_types import decode_encoding, header, signature
-from ios_decompiler_mcp.core.sessions import ProcessSession
+from vesper.app import Application
+from vesper.core.errors import MCPError
+from vesper.core.objc_types import decode_encoding, header, signature
+from vesper.core.sessions import ProcessSession
 
 
 def test_signature_generation_rejects_ambiguous_abi():

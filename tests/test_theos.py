@@ -9,11 +9,11 @@ from pathlib import Path
 
 import pytest
 
-from ios_decompiler_mcp.adapters.debian import inspect_package
-from ios_decompiler_mcp.adapters.process import run_process
-from ios_decompiler_mcp.adapters.theos import HookSpec, ProjectSpec, diagnostics
-from ios_decompiler_mcp.app import Application
-from ios_decompiler_mcp.core.errors import MCPError
+from vesper.adapters.debian import inspect_package
+from vesper.adapters.process import run_process
+from vesper.adapters.theos import HookSpec, ProjectSpec, diagnostics
+from vesper.app import Application
+from vesper.core.errors import MCPError
 
 
 def make_deb(tmp_path: Path, spec: dict, *, global_injection: bool = False, script: bool = False, script_name: str = "postinst", control_archive: bytes | None = None, trailing_slash: bool = True) -> Path:

@@ -24,6 +24,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run typecheck
       - run: npm run build
+      - run: npm test
       - run: uv run ruff check src tests scripts examples/demo.py
       - run: uv run mypy
       - run: uv run pytest -q

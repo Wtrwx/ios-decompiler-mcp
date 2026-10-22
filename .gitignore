@@ -6,6 +6,7 @@ __pycache__/
 .ruff_cache/
 .mypy_cache/
 .ios-decompiler-mcp/
+.vesper/
 .theos/
 .fakeroot/
 dist/
@@ -15,3 +16,4 @@ build/
 *.dSYM/
 .DS_Store
 ios-decompiler-mcp.local.toml
+vesper.local.toml

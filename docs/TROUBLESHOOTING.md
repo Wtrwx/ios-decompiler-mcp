@@ -27,7 +27,7 @@
 | Pseudocode unavailable | A matching processor decompiler and license are optional. Metadata, disassembly and xrefs can still work. Pseudocode is inferred by Hex-Rays. |
 | Static/runtime identity mismatch | Use the exact same binary build, architecture and database. UUID mismatch or absent evidence means no match; do not adjust slides by guesswork. |
 | Duplicate server / state lock | Stop the other MCP server or give this client its own state directory. The approval CLI can coexist with one server. |
-| `ModuleNotFoundError: ios_decompiler_mcp` in an editable install | Reinstall with `uv sync --frozen --all-extras --no-editable`. Some managed macOS environments hide editable `.pth` files. Source runs can use explicit `PYTHONPATH=/absolute/repo/src`. |
+| `ModuleNotFoundError: vesper` in an editable install | Reinstall with `uv sync --frozen --all-extras --no-editable`. Some managed macOS environments hide editable `.pth` files. Source runs can use explicit `PYTHONPATH=/absolute/repo/src`. |
 | Tests cannot bind loopback | The SSH integration tests require permission to listen on `127.0.0.1` only. Grant local test networking; no iPhone or external server is needed. |
 
 After a host crash, consult `server_status.recovery_required` and

@@ -334,50 +334,6 @@ wheels = [
 ]
 
 [[package]]
-name = "ios-decompiler-mcp"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "asyncssh" },
-    { name = "mcp" },
-    { name = "pydantic" },
-]
-
-[package.optional-dependencies]
-device = [
-    { name = "frida" },
-]
-static = [
-    { name = "lief" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "asyncssh", specifier = ">=2.21,<3" },
-    { name = "frida", marker = "extra == 'device'", specifier = ">=17.5,<18" },
-    { name = "lief", marker = "extra == 'static'", specifier = ">=0.17,<0.18" },
-    { name = "mcp", specifier = ">=1.20,<2" },
-    { name = "pydantic", specifier = ">=2.11,<3" },
-]
-provides-extras = ["device", "static"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "mypy", specifier = ">=1.18,<2" },
-    { name = "pytest", specifier = ">=8.3,<10" },
-    { name = "pytest-asyncio", specifier = ">=1,<2" },
-    { name = "ruff", specifier = ">=0.14,<1" },
-]
-
-[[package]]
 name = "jsonschema"
 version = "4.26.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1179,4 +1135,48 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/da/34/30e9280707135d2cfc589dfff3cb796bd07a3aeb1a3e415ba09dd89d7bb4/uvicorn-0.54.0.tar.gz", hash = "sha256:a2e33cbfaa0306f8e6b0c13e0cb89d7d7a2da3e62b90c66e18c33d9807b28620", size = 112283, upload-time = "2026-09-25T06:52:37.601Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/38/0c/b54a4fdd7f90a3af8b02ebc9ce6712c2c208b7926a2f7bad95c33ebbe943/uvicorn-0.54.0-py3-none-any.whl", hash = "sha256:505bdb0f318731d45f1f712071fc781a8981f6847a31c902c9f5e652d4f67faf", size = 87427, upload-time = "2026-09-25T06:52:35.829Z" },
+]
+
+[[package]]
+name = "vesper"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "asyncssh" },
+    { name = "mcp" },
+    { name = "pydantic" },
+]
+
+[package.optional-dependencies]
+device = [
+    { name = "frida" },
+]
+static = [
+    { name = "lief" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "asyncssh", specifier = ">=2.21,<3" },
+    { name = "frida", marker = "extra == 'device'", specifier = ">=17.5,<18" },
+    { name = "lief", marker = "extra == 'static'", specifier = ">=0.17,<0.18" },
+    { name = "mcp", specifier = ">=1.20,<2" },
+    { name = "pydantic", specifier = ">=2.11,<3" },
+]
+provides-extras = ["device", "static"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy", specifier = ">=1.18,<2" },
+    { name = "pytest", specifier = ">=8.3,<10" },
+    { name = "pytest-asyncio", specifier = ">=1,<2" },
+    { name = "ruff", specifier = ">=0.14,<1" },
 ]

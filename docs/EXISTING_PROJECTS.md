@@ -18,7 +18,7 @@ Other evaluated options:
 
 - [Official Hex-Rays IDA MCP](https://github.com/HexRaysSA/ida-mcp) now requires
   IDA 9.4+ and uses IDA Nexus. It is the upstream-recommended MCP option, but does
-  not support the locally installed 9.1. iOS Decompiler MCP's optional SDK worker targets
+  not support the locally installed 9.1. vesper's optional SDK worker targets
   official idalib in IDA 9.0+, with capabilities checked at runtime.
 - [mrexodia/ida-pro-mcp](https://github.com/mrexodia/ida-pro-mcp) is MIT, active as
   of Sep 26, 2026, offers headless per-database workers, and recommends the official

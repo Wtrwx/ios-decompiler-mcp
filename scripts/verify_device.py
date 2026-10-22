@@ -20,7 +20,7 @@ import frida
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
-from ios_decompiler_mcp.config import Settings
+from vesper.config import Settings
 
 
 async def verify(config: Path, device_id: str, bundle_id: str) -> None:
@@ -46,7 +46,7 @@ async def verify(config: Path, device_id: str, bundle_id: str) -> None:
 
     parameters = StdioServerParameters(
         command=sys.executable,
-        args=["-m", "ios_decompiler_mcp.server", "--config", str(config.resolve())],
+        args=["-m", "vesper.server", "--config", str(config.resolve())],
         cwd=str(settings.workspace),
         env=dict(os.environ),
     )
@@ -82,7 +82,8 @@ async def verify(config: Path, device_id: str, bundle_id: str) -> None:
                 try:
                     window_info = await call("ui_get_windows", session)
                     assert window_info["windows"], "No UIKit windows observed"
-                    snapshot = await call("ui_snapshot", {**session, "depth": 12, "max_nodes": 512, "limit": 500, "include_text": False})
+                    snapshot = await call("ui_snapshot", {**session, "depth": 12, "max_nodes": 512, "limit": 500,
+                        "include_text": False, "format": "detail", "controls_only": False, "visible_only": False})
                     assert snapshot["views"]
                     assert all("text" not in view for view in snapshot["views"])
                     candidates = [view for view in snapshot["views"] if not view["hidden"] and view["alpha"] > 0]

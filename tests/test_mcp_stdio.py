@@ -14,22 +14,22 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from mcp.shared.memory import create_connected_server_and_client_session
 
-from ios_decompiler_mcp.app import Application
-from ios_decompiler_mcp.server import create_server
+from vesper.app import Application
+from vesper.server import create_server
 
 
 @pytest.mark.asyncio
 async def test_real_stdio_discovery_and_invocation(tmp_path: Path):
     config = tmp_path / "server.toml"
     config.write_text(f'workspace = "{tmp_path}"\nstate_dir = "{tmp_path / "state"}"\n')
-    parameters = StdioServerParameters(command=sys.executable, args=["-m", "ios_decompiler_mcp.server", "--config", str(config)], env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")})
+    parameters = StdioServerParameters(command=sys.executable, args=["-m", "vesper.server", "--config", str(config)], env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")})
     async with stdio_client(parameters) as (read, write):
         async with ClientSession(read, write) as client:
             info = await client.initialize()
-            assert info.serverInfo.name == "ios-decompiler-mcp"
+            assert info.serverInfo.name == "Vesper iOS"
             tools = (await client.list_tools()).tools
             names = {tool.name for tool in tools}
-            assert {"server_status", "device_connect", "frida_attach", "objc_search_classes", "ui_snapshot"} <= names
+            assert {"server_status", "platform_tool", "ui_capture", "ui_automate", "ui_snapshot"} <= names
             status = await client.call_tool("server_status", {})
             assert not status.isError
             assert status.structuredContent["ok"]
@@ -59,6 +59,6 @@ async def test_native_screenshot_image_uses_mcp_content_block(settings):
 def test_startup_config_errors_do_not_echo_secret_values(tmp_path):
     config = tmp_path / "bad.toml"
     config.write_text('[devices.test]\nhost="localhost"\npassword="never-echo-this-secret"\n')
-    result = subprocess.run([sys.executable, "-m", "ios_decompiler_mcp.server", "--config", str(config)], env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")}, capture_output=True, text=True, timeout=10)
+    result = subprocess.run([sys.executable, "-m", "vesper.server", "--config", str(config)], env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")}, capture_output=True, text=True, timeout=10)
     assert result.returncode == 2
     assert "never-echo-this-secret" not in result.stderr and "ValidationError" in result.stderr

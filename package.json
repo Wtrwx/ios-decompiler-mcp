@@ -1,10 +1,11 @@
 {
-  "name": "ios-decompiler-mcp-agents",
+  "name": "vesper-agents",
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
   "scripts": {
     "build": ".venv/bin/python scripts/build_agent.py",
+    "test": "node --test tests/agent_*.cjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

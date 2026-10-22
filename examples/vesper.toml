@@ -1,0 +1,40 @@
+# Copy to vesper.local.toml and set workspace to the repository's absolute path.
+workspace = "/absolute/path/to/vesper"
+state_dir = ".vesper"
+operation_timeout = 30
+build_timeout = 180
+# Cached SSH discovery is scoped to the live connection and invalidated on failure/reconnect.
+ssh_probe_ttl = 300
+session_idle_timeout = 300 # 0 disables idle reclamation; RPCs/hooks/workflows pin sessions
+maintenance_interval = 5
+snapshot_ttl = 60
+snapshot_max_count = 4
+snapshot_max_bytes = 8388608
+object_handle_ttl = 60 # objects shared with snapshots survive until their last lease ends
+tool_profile = "focused" # full advertises every low-level tool directly
+max_decrypt_bytes = 536870912 # increase explicitly for larger app frameworks
+# classdumpc = "/usr/local/bin/classdumpc" # defaults to PATH
+legacy_text_json = false # true for clients that require full JSON in TextContent
+screenshot_transport = "binary" # lossless PNG; use "base64" for Frida transport compatibility
+# theos = "/absolute/path/to/theos" # defaults to THEOS
+# ida_directory = "/Applications/IDA Professional 9.1.app/Contents/MacOS"
+# ida_python = "/absolute/path/to/IDA-compatible/python"
+
+# Optional host LLDB + executable device debugserver are used only for backend=lldb.
+
+[devices.test]
+host = "127.0.0.1"
+port = 2222
+username = "root"
+client_keys = ["~/.ssh/id_ed25519"]
+known_hosts = "~/.ssh/known_hosts"
+allowed_apps = ["dev.iosdecompiler.fixture"]
+# Set the precise USB ID shown by frida_list_devices. Do not leave a placeholder.
+frida_device_id = "replace-with-observed-usb-device-id"
+# Alternatively remove frida_device_id and use a secured local SSH-forwarded server:
+# frida_remote = "127.0.0.1:27043"
+staging_directory = "/tmp/vesper"
+download_roots = ["/tmp/vesper"]
+
+# debugserver_path = "/var/jb/usr/bin/debugserver" # auto-detected when omitted
+# debugserver_port = 12345 # loopback-only, carried over SSH

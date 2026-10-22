@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from ios_decompiler_mcp.adapters.theos import ProjectSpec
-from ios_decompiler_mcp.app import Application
-from ios_decompiler_mcp.config import DeviceConfig, Settings
-from ios_decompiler_mcp.server import create_server
+from vesper.adapters.theos import ProjectSpec
+from vesper.app import Application
+from vesper.config import DeviceConfig, Settings
+from vesper.server import create_server
 
 
 @pytest.fixture
@@ -16,11 +16,11 @@ def settings(tmp_path: Path) -> Settings:
 
 
 @pytest.fixture
-def app(settings: Settings):
+async def app(settings: Settings):
     instance = Application(settings)
     create_server(instance)
     yield instance
-    instance.registry.close()
+    await instance.close()
 
 
 @pytest.fixture

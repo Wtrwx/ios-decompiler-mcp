@@ -3,9 +3,9 @@ requires = ["hatchling>=1.27,<2"]
 build-backend = "hatchling.build"
 
 [project]
-name = "ios-decompiler-mcp"
+name = "vesper"
 version = "0.1.0"
-description = "Agent-native inspection and Logos development for authorized jailbroken iOS devices"
+description = "iOS reverse engineering platform with MCP tools and agent skills"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
@@ -20,14 +20,14 @@ device = ["frida>=17.5,<18"]
 static = ["lief>=0.17,<0.18"]
 
 [project.scripts]
-ios-decompiler-mcp = "ios_decompiler_mcp.server:main"
-ios-decompiler-mcp-approve = "ios_decompiler_mcp.core.permissions:main"
+vesper = "vesper.server:main"
+vesper-approve = "vesper.core.permissions:main"
 
 [dependency-groups]
 dev = ["pytest>=8.3,<10", "pytest-asyncio>=1,<2", "ruff>=0.14,<1", "mypy>=1.18,<2"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/ios_decompiler_mcp"]
+packages = ["src/vesper"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -45,12 +45,12 @@ ignore = ["E501", "ASYNC109", "ASYNC240"]
 
 [tool.mypy]
 python_version = "3.11"
-files = ["src/ios_decompiler_mcp"]
+files = ["src/vesper"]
 check_untyped_defs = true
 disallow_untyped_defs = true
 warn_unused_ignores = true
 no_implicit_optional = true
 
 [[tool.mypy.overrides]]
-module = ["frida", "lief", "idapro", "idautils", "ida_auto", "ida_funcs", "ida_ida", "ida_idaapi", "ida_lines", "ida_name", "ida_nalt", "ida_hexrays"]
+module = ["frida", "lief", "lldb", "idapro", "idautils", "ida_auto", "ida_funcs", "ida_ida", "ida_idaapi", "ida_lines", "ida_name", "ida_nalt", "ida_hexrays"]
 ignore_missing_imports = true

@@ -21,7 +21,7 @@ tool paths are added explicitly to PATH.
 ## Approval lifecycle
 
 An operation without a grant returns `APPROVAL_REQUIRED` with its full scope and
-approval ID. The operator separately runs `ios-decompiler-mcp-approve`, reviews the scope,
+approval ID. The operator separately runs `vesper-approve`, reviews the scope,
 and types `approve`. Only the local CLI grants requests. A grant is valid for
 ten minutes, exact-argument bound, single-use and consumed atomically in SQLite.
 Changing the session, artifact bytes, device, restart option or previous package
@@ -78,8 +78,8 @@ previous packages until recovery is complete.
 
 ## Data and execution limits
 
-UI text is opt-in, secure text fields redact their value, ivar/property queries
-return metadata rather than invoking arbitrary getters, and trace arguments are
+UI text is opt-in, secure text fields redact their value, metadata queries do not
+read object contents, and trace arguments are
 bounded scalars/addresses. Screenshot requests can contain visible app data and
 must be deliberate. The workflow explicitly captures its selected button/title
 and bounded nearby hierarchy as evidence. Do not select unrelated private UI.
@@ -87,14 +87,25 @@ and bounded nearby hierarchy as evidence. Do not select unrelated private UI.
 Secret-key fields, bearer values, common credential patterns and private-key
 blocks are redacted in results/events/audits. This is best-effort filtering, not
 a guarantee that all sensitive free text or image pixels can be recognized.
+`objc_query_instances` and explicit `objc_inspect_object(include_values=true)`
+read bounded ivars. Sensitive ivar/dictionary names are checked before reading
+their values; unknown objects return leased references. Only known Foundation
+string/number/collection accessors are used for bounded value serialization;
+arbitrary getters/descriptions and raw pointer dereferencing are not exposed.
+Native/Swift layouts and concurrent object mutation can still make reads
+unavailable or inconsistent; this is best-effort runtime inspection.
+
 Audits store tool outcome and scoped approval metadata, not raw tool arguments.
 State files are private to the local operator. Delete/export them deliberately
 under the operator's data-retention policy.
 
 Tools have execution deadlines. Process output, file sizes, object IDs, hooks,
 sessions, worker slots, jobs, events and UI traversals have caps. Event cursors
-include loss counts. Native object references are retained for identifier safety
-and released on detach; retaining can delay app object deallocation. An abrupt
+include loss counts. Native object references are retained for identifier safety,
+reference-counted across expiring snapshot/operation leases, and released after
+their final lease ends or on detach. Active batched operations hold their input
+references across waits; RPCs, hooks and workflows protect sessions from idle
+reclamation. Retaining can delay app object deallocation. An abrupt
 host death may prevent release until the target process exits. Main-thread
 inspections and heap scans can briefly pause the app. These tools are debugging
 instrumentation and should be used on an isolated test device.

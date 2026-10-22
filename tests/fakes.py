@@ -2,13 +2,14 @@
 from __future__ import annotations
 
 import hashlib
+from contextlib import nullcontext
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
-from ios_decompiler_mcp.adapters.debian import inspect_package
-from ios_decompiler_mcp.app import Application
-from ios_decompiler_mcp.core.sessions import ProcessSession, require_session
+from vesper.adapters.debian import inspect_package
+from vesper.app import Application
+from vesper.core.sessions import ProcessSession, require_session
 
 
 class FakeSSH:
@@ -67,6 +68,9 @@ class FakeFrida:
         self.loaded: dict[str, Any] | None = None
         self.title = "Original"
         self.wrong_title = False
+
+    def keepalive(self, *args):
+        return nullcontext()
 
     async def applications(self, device_id):
         return [{"bundle_id": "dev.iosdecompiler.fixture", "name": "Fixture", "pid": self.pid, "parameters": {"path": "/Applications/DecompilerFixture.app"}}]

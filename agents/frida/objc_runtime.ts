@@ -75,7 +75,7 @@ export function dumpClass(args: Args): Args {
 
 export function inspectObject(args: Args): Args {
   const object = objectFor(args.object_id);
-  // Never call arbitrary descriptions/getters or dump ivar values: they may contain secrets.
+  if (args.include_values || args.field_names) return readObject(object, args);
   return { object_id: args.object_id, class_name: object.$className, kind: object.$kind,
     protocols: Object.keys(object.$protocols), methods: object.$ownMethods.slice(0, args.limit || 100),
     ivar_names: Object.keys(object.$ivars).slice(0, args.limit || 100), observed: true };
@@ -86,18 +86,89 @@ export function implementation(args: Args): Args {
   return { class_name: args.class_name, ...metadata(method, `${args.class_method ? "+" : "-"} ${args.selector}`) };
 }
 
-export function findInstances(args: Args): Promise<Args> {
-  const values: Args[] = [], limit = args.limit || 100;
-  return new Promise((resolve, reject) => {
-    try {
-      ObjC.choose(classFor(args.class_name), {
-        onMatch(object) {
-          values.push({ object_id: objectId(object), class_name: object.$className, observed: true });
-          if (values.length >= limit) return "stop";
-        },
-        onComplete() { resolve({ instances: values, limit_reached: values.length >= limit, supported: true,
-          warning: "Heap enumeration is best effort and may pause the target process" }); },
-      });
-    } catch (error) { reject(error); }
+const sensitive = /password|passwd|secret|authorization|cookie|credential|access.?token|private.?key/i;
+
+function isKind(object: ObjC.Object, name: string): boolean {
+  return !!ObjC.classes[name] && !!object.isKindOfClass_(ObjC.classes[name]);
+}
+function boundedString(value: ObjC.Object, maximum: number): string {
+  const length = Number(value.length());
+  return String(length > maximum ? value.substringToIndex_(maximum) : value);
+}
+function valueOf(value: any, args: Args, depth = 0, seen = new Set<string>()): any {
+  const budget = args._value_budget;
+  if (++budget.nodes > 1000 || budget.characters >= 32768) return { truncated: "value_budget" };
+  if (value == null || typeof value === "boolean" || typeof value === "number") return value;
+  if (typeof value === "string") {
+    const text = value.slice(0, Math.min(args.max_string_length || 128, 32768 - budget.characters));
+    budget.characters += text.length; return text;
+  }
+  if (typeof value === "bigint") return value.toString();
+  if (Array.isArray(value)) return depth >= (args.max_depth ?? 1) ? { array_length: value.length } :
+    value.slice(0, args.max_items || 5).map(item => valueOf(item, args, depth + 1, seen));
+  if (!value.handle) return { scalar: String(value).slice(0, 128) }; // NativePointer/Int64; never dereference.
+  if (value.handle.isNull()) return null;
+  const maximum = Math.min(args.max_string_length || 128, 32768 - budget.characters);
+  if (isKind(value, "NSString")) {
+    const text = boundedString(value, maximum); budget.characters += text.length; return text;
+  }
+  if (isKind(value, "NSNumber")) return { number: String(value.stringValue()) };
+  if (isKind(value, "NSNull")) return null;
+  const id = objectId(value), result: Args = { object_id: id, class_name: value.$className };
+  if (isKind(value, "NSData")) return { ...result, bytes: Number(value.length()) };
+  if (depth >= (args.max_depth ?? 1) || seen.has(id!)) return result;
+  seen.add(id!);
+  const maximumItems = args.max_items || 5;
+  if (isKind(value, "NSArray")) {
+    const count = Number(value.count());
+    result.items = Array.from({ length: Math.min(count, maximumItems) }, (_, i) => valueOf(value.objectAtIndex_(i), args, depth + 1, seen));
+    result.total = count;
+  } else if (isKind(value, "NSDictionary")) {
+    result.entries = []; result.total = Number(value.count());
+    const enumerator = value.keyEnumerator();
+    for (let i = 0; i < maximumItems; i++) {
+      const key = enumerator.nextObject();
+      if (!key || key.handle.isNull()) break;
+      const stringKey = isKind(key, "NSString"), fullName = stringKey ? boundedString(key, 4096) : `[${key.$className}]`;
+      const secret = sensitive.test(fullName) || (stringKey && Number(key.length()) > 4096);
+      result.entries.push({ key: fullName.slice(0, maximum), value: secret ? "[REDACTED]" : valueOf(value.objectForKey_(key), args, depth + 1, seen) });
+    }
+  }
+  return result;
+}
+
+export function readObject(object: ObjC.Object, args: Args): Args {
+  args._value_budget ||= { nodes: 0, characters: 0 };
+  const available = Object.keys(object.$ivars), names: string[] = args.field_names ?? available.slice(0, args.max_fields || 8);
+  const values: Args = Object.create(null);
+  for (const name of names) {
+    if (sensitive.test(name)) { values[name] = "[REDACTED]"; continue; }
+    if (!available.includes(name)) { values[name] = { unavailable: "ivar_not_found" }; continue; }
+    try { values[name] = valueOf(object.$ivars[name], args); }
+    catch (error) { values[name] = { unavailable: error instanceof Error ? error.name : "read_failed" }; }
+  }
+  return { object_id: objectId(object), class_name: object.$className, values,
+    total_ivars: available.length, fields_truncated: !args.field_names && available.length > names.length,
+    values_truncated: args._value_budget.nodes > 1000 || args._value_budget.characters >= 32768 };
+}
+
+export function inspectObjects(args: Args): Args {
+  return { instances: args.object_ids.map((id: string) => readObject(objectFor(id), args)), source: "leased_handles" };
+}
+
+export function findInstances(args: Args): Args {
+  const values: Args[] = [], limit = args.limit || 100, offset = args.offset || 0;
+  let visited = 0;
+  // frida-objc-bridge choose() invokes its callbacks synchronously. Keeping
+  // collection synchronous also keeps every retain inside its main-thread lease.
+  ObjC.choose({ class: classFor(args.class_name), subclasses: args.include_subclasses ?? true }, {
+    onMatch(object) {
+      if (visited++ < offset) return;
+      values.push(args.include_values ? readObject(object, args) : { object_id: objectId(object), class_name: object.$className });
+      if (values.length >= limit) return "stop";
+    },
+    onComplete() {},
   });
+  return { instances: values, limit_reached: values.length >= limit, supported: true,
+    warning: "Heap enumeration scans the allocator and may pause the target; cached pages and leased handles avoid rescanning" };
 }

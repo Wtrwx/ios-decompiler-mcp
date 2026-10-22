@@ -10,11 +10,11 @@ from unittest.mock import AsyncMock
 import asyncssh
 import pytest
 
-from ios_decompiler_mcp.adapters.frida import FridaAdapter
-from ios_decompiler_mcp.adapters.ssh import SSHAdapter
-from ios_decompiler_mcp.config import DeviceConfig, Settings
-from ios_decompiler_mcp.core.errors import MCPError
-from ios_decompiler_mcp.core.registry import Registry
+from vesper.adapters.frida import FridaAdapter
+from vesper.adapters.ssh import SSHAdapter
+from vesper.config import DeviceConfig, Settings
+from vesper.core.errors import MCPError
+from vesper.core.registry import Registry
 
 
 @asynccontextmanager
@@ -97,7 +97,7 @@ async def test_ios_hardware_model_is_not_used_as_cpu_architecture(settings):
     assert info["architecture"] == "arm64"
     assert info["cpu_subtype"] == "2"
     adapter._run.return_value["stdout"] = "hardware_model=iPhone11,8\ncpu_type=\nios_version=16.0\n"
-    assert (await adapter.probe("test"))["architecture"] == "unknown"
+    assert (await adapter.probe("test", force=True))["architecture"] == "unknown"
 
 
 async def test_real_sftp_atomic_transfers_and_symlink_confinement(tmp_path):
@@ -205,3 +205,60 @@ async def test_frida_attach_failure_identifies_the_native_phase(settings):
         assert not adapter.sessions
     finally:
         registry.close()
+
+
+async def test_probe_cache_ttl_force_and_failure_invalidation(settings, monkeypatch):
+    adapter = SSHAdapter(settings)
+    adapter._run = AsyncMock(return_value={'exit_status': 0, 'stdout': 'architecture=arm64\nios_version=16.0\n', 'stderr': ''})
+    first, second = await asyncio.gather(adapter.probe('test'), adapter.probe('test'))
+    assert first == second and adapter._run.await_count == 1
+    first['architecture'] = 'changed-by-caller'
+    assert (await adapter.probe('test'))['architecture'] == 'arm64'
+    import vesper.adapters.ssh as ssh_module
+    observed = ssh_module.time.monotonic()
+    with monkeypatch.context() as clock:
+        clock.setattr(ssh_module.time, 'monotonic', lambda: observed + settings.ssh_probe_ttl + 1)
+        await adapter.probe('test')
+    assert adapter._run.await_count == 2
+    await adapter.probe('test', force=True)
+    assert adapter._run.await_count == 3
+    adapter.invalidate_probe('test')
+    await adapter.probe('test')
+    assert adapter._run.await_count == 4
+    # A connection generation change invalidates even an otherwise fresh entry.
+    adapter.connections['test'] = SimpleNamespace(is_closed=lambda: False)
+    await adapter.probe('test')
+    assert adapter._run.await_count == 5
+    adapter._run.side_effect = MCPError('SSH_ERROR', 'connection failed')
+    with pytest.raises(MCPError):
+        await adapter.probe('test', force=True)
+    assert 'test' not in adapter.probes
+
+
+async def test_probe_reconnects_and_notifies_session_manager(tmp_path):
+    async with ssh_server(tmp_path) as (adapter, _):
+        reconnect = []
+        adapter.on_reconnect = reconnect.append
+        original = adapter._probe
+        adapter._probe = AsyncMock(wraps=original)
+        await adapter.probe('test')
+        await adapter.probe('test')
+        assert adapter._probe.await_count == 1
+        old = adapter.connections['test']
+        old.close()
+        await old.wait_closed()
+        await adapter.probe('test')
+        assert adapter._probe.await_count == 2
+        assert adapter.connections['test'] is not old and reconnect == ['test']
+
+
+@pytest.mark.parametrize('failure, code', [(asyncssh.ConnectionLost('lost'), 'SSH_ERROR'), (TimeoutError(), 'TIMEOUT')])
+async def test_ssh_command_failures_drop_probe_cache(settings, failure, code):
+    from unittest.mock import Mock
+    adapter = SSHAdapter(settings)
+    connection = SimpleNamespace(create_process=AsyncMock(side_effect=failure), close=Mock())
+    adapter.connect = AsyncMock(return_value=connection)
+    adapter.probes['test'] = (float('inf'), connection, {'architecture': 'arm64'})
+    with pytest.raises(MCPError) as error:
+        await adapter._run('test', 'uname -m')
+    assert error.value.code == code and 'test' not in adapter.probes

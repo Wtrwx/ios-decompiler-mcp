@@ -10,8 +10,8 @@ Build using an installed Theos/iOS toolchain:
 
 ```sh
 make -C examples/UIKitFixture clean package FINALPACKAGE=1 \
-  CLANG_MODULE_CACHE_PATH="$PWD/.ios-decompiler-mcp/compiler-cache" \
-  THEOS_PACKAGE_DIR="$PWD/.ios-decompiler-mcp/fixture-packages"
+  CLANG_MODULE_CACHE_PATH="$PWD/.vesper/compiler-cache" \
+  THEOS_PACKAGE_DIR="$PWD/.vesper/fixture-packages"
 ```
 
 The example targets iOS 15+ and a rootless ARM64 application. Override `TARGET`,
@@ -24,6 +24,6 @@ your normal jailbreak package manager and refresh its application registration
 using the jailbreak's documented procedure. Launch **Decompiler Fixture** once.
 
 Configure SSH and Frida, allowlist `dev.iosdecompiler.fixture`, then run
-`PYTHONPATH=src .venv/bin/python examples/demo.py --config ios-decompiler-mcp.local.toml --device test`.
+`PYTHONPATH=src .venv/bin/python examples/demo.py --config vesper.local.toml --device test`.
 The demonstration requests separate operator approvals for deployment/restart and
 uninstallation/restart, and asserts that the final title is `Original`.

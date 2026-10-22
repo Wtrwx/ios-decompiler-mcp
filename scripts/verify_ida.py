@@ -6,8 +6,8 @@ import asyncio
 import json
 from pathlib import Path
 
-from ios_decompiler_mcp.app import Application
-from ios_decompiler_mcp.config import Settings
+from vesper.app import Application
+from vesper.config import Settings
 
 
 async def verify(args: argparse.Namespace) -> None:

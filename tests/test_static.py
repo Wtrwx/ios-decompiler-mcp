@@ -6,8 +6,8 @@ import sys
 
 import pytest
 
-from ios_decompiler_mcp.adapters.macho import correlate, inspect_macho
-from ios_decompiler_mcp.core.errors import MCPError
+from vesper.adapters.macho import correlate, inspect_macho
+from vesper.core.errors import MCPError
 
 
 @pytest.fixture
@@ -60,7 +60,7 @@ for line in sys.stdin:
         # supervisor's subprocess pipes, copied database, timeouts and cleanup.
         return await original_spawn(sys.executable, "-u", "-c", script, **kwargs)
 
-    monkeypatch.setattr("ios_decompiler_mcp.adapters.ida.asyncio.create_subprocess_exec", spawn)
+    monkeypatch.setattr("vesper.adapters.ida.asyncio.create_subprocess_exec", spawn)
     opened = await app.ida.open(path)
     assert opened["macho"] is None
     assert opened["database_copy"] != str(path)
