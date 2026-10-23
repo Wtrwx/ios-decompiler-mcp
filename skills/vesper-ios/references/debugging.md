@@ -5,6 +5,13 @@ component availability, not a successful attach. `debug_setup` checks the import
 Frida version, device server, host LLDB, device debugserver, and host classdumpc.
 Install only the components needed by the selected backend.
 
+If the app's UI is hung, start with the Frida thread/backtrace backend. Cold
+identity verification uses Foundation metadata and does not wait for UIKit's
+main queue. No UI observation is needed before sampling. Foundation's NSBundle
+is listed in Apple's [thread-safe classes](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Multithreading/ThreadSafetySummary/ThreadSafetySummary.html).
+Frida transport/runtime failure can still prevent sampling; a running-thread
+sample does not prove a unique cause. UI handles continue to release on main.
+
 For a stable thread stop or frame locals, request `backend="lldb"` with small
 `max_threads`, `max_frames`, `max_variables` and an observed `thread_id` where
 possible. No arbitrary LLDB expressions or getters run. Debugserver is bound to
@@ -60,3 +67,26 @@ For native action probes, select the currently visible controller and wait for
 its transition to finish before another open/close action. A retained but closed
 controller is not an active panel. Direct selector calls can bypass the app's
 touch debounce and must not be used to infer physical-touch stability.
+Record whether a private action ran synchronously inside a Frida callback or
+was deferred to the native run loop. Compare those paths if instrumentation
+hangs, and reproduce through a real control before attributing the hang to a
+tweak. Keep the same geometry assertions when changing the probe mechanism.
+
+For UIKit layout regressions, sample the opening/closing transition as well as
+settled rectangles. An unchanged root height does not prove that a description
+label or one of its ancestors did not move. Compare visible text/control frames,
+ancestor transforms and the actual Tab boundary. Separate video, static image
+and Live image cases using observed model flags; a Live image may own a video
+player. A UIVisualEffectView on the panel is also insufficient evidence: inspect
+opaque nested scroll/cell backgrounds and verify the rendered lower text area.
+Test toggle-off restoration and repeated openings without accumulating effects.
+Text chips can have their own background and `opaque` flag. Check button title
+labels after their parent button finishes layout; it can restore a background
+after the label's own callback. Verify reused/expanded reply rows as well.
+
+On RootHide, keep both package and installed-file hashes. If they differ, inspect
+the parsed Mach-O slices and all changed ranges before proceeding. The tested
+setup can brand padding in the ARM64e __TEXT section segment name with the
+observed jbroot identifier and update its code signature. Verify every other
+byte, the expected architecture/UUID and the loaded build marker; do not treat
+an unexplained mismatch as a successful installation.

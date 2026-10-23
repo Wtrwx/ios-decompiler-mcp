@@ -1,5 +1,5 @@
 📦
-163726 /agents/frida/index.js
+164121 /agents/frida/index.js
 ✄
 // node_modules/frida-objc-bridge/lib/api.js
 var cachedApi = null;
@@ -2946,6 +2946,22 @@ function requireRuntime() {
   if (!frida_objc_bridge_default.available)
     throw new Error("Objective-C runtime is unavailable; pure Swift metadata is not reconstructed");
 }
+function processIdentity() {
+  requireRuntime();
+  const pool = frida_objc_bridge_default.classes.NSAutoreleasePool.alloc().init();
+  try {
+    const bundle = frida_objc_bridge_default.classes.NSBundle.mainBundle();
+    return {
+      bundle_id: String(bundle.bundleIdentifier()),
+      pid: Process.id,
+      architecture: Process.arch,
+      executable: String(bundle.executablePath()),
+      observed: true
+    };
+  } finally {
+    pool.drain();
+  }
+}
 function main(work) {
   requireRuntime();
   return new Promise((resolve2, reject) => {
@@ -3456,7 +3472,7 @@ function describe(view, includeText, detailed = false, fields, owners2 = /* @__P
   if (selected.has("user_interaction_enabled"))
     result.user_interaction_enabled = !!view.isUserInteractionEnabled();
   if (selected.has("interactive"))
-    result.interactive = interactive(view) && (visibility?.interaction ?? ancestry(view).interaction);
+    result.interactive = visibility?.interactive ?? (interactive(view) && ancestry(view).interaction);
   if (selected.has("accessibility_identifier"))
     result.accessibility_identifier = nullableString(view.accessibilityIdentifier());
   if (selected.has("controller"))
@@ -3495,13 +3511,13 @@ function snapshot(args, windowInfo = windows()) {
     const visible = !hidden && alpha > 0.01 && box.width > 0 && box.height > 0 && !!windowBox && box.x < windowBox.x + windowBox.width && box.y < windowBox.y + windowBox.height && box.x + box.width > windowBox.x && box.y + box.height > windowBox.y;
     if (visibleOnly && (hidden || alpha <= 0.01))
       continue;
-    const isInteractive = ancestors.interaction && interactive(view);
-    const isContent = isInteractive || isKind2(view, "UILabel") || isKind2(view, "UITextView") || !!view.isAccessibilityElement();
     const matches = (!args.class_name || view.$className === args.class_name) && (!args.accessibility_identifier || nullableString(view.accessibilityIdentifier()) === args.accessibility_identifier) && (args.hidden == null || !!view.isHidden() === args.hidden) && (args.user_interaction_enabled == null || !!view.isUserInteractionEnabled() === args.user_interaction_enabled) && (args.text == null || String(text(view) || "").toLowerCase().includes(String(args.text).toLowerCase()));
     let selectedParent = parent_id;
-    if (matches && (!visibleOnly || visible) && (!controlsOnly || isContent)) {
+    const isInteractive = matches && (!visibleOnly || visible) && (controlsOnly || fields.includes("interactive")) ? ancestors.interaction && interactive(view) : void 0;
+    const isContent = !controlsOnly || isInteractive || matches && (!visibleOnly || visible) && (isKind2(view, "UILabel") || isKind2(view, "UITextView") || !!view.isAccessibilityElement());
+    if (matches && (!visibleOnly || visible) && isContent) {
       try {
-        const description = describe(view, !!args.include_text, false, fields, owners2, { hidden, alpha, interaction: ancestors.interaction, visible });
+        const description = describe(view, !!args.include_text, false, fields, owners2, { hidden, alpha, interaction: ancestors.interaction, interactive: isInteractive, visible });
         if (fields.includes("parent_id"))
           description.parent_id = parent_id;
         if (fields.includes("depth"))
@@ -3911,6 +3927,15 @@ function step(args) {
     const dy = args.pages == null ? args.dy ?? 0 : Number(bounds[1]) * args.pages;
     const x = Math.max(-left, Math.min(Math.max(-left, Number(size[0]) - Number(bounds[0]) + right), Number(offset[0]) + (args.dx ?? 0)));
     const y = Math.max(-top, Math.min(Math.max(-top, Number(size[1]) - Number(bounds[1]) + bottom), Number(offset[1]) + dy));
+    if (x === Number(offset[0]) && y === Number(offset[1])) {
+      return {
+        action,
+        view_id: objectId(view),
+        content_offset: { x, y },
+        performed: false,
+        at_boundary: dy !== 0 || (args.dx ?? 0) !== 0
+      };
+    }
     view.setContentOffset_animated_([x, y], !!args.animated);
     return { action, view_id: objectId(view), content_offset: { x, y }, performed: true };
   }
@@ -4541,29 +4566,21 @@ rpc.exports = {
       if (name === "initialize") {
         if (state.session)
           throw new Error("Agent already initialized");
-        return await main(() => {
-          const bundle = String(frida_objc_bridge_default.classes.NSBundle.mainBundle().bundleIdentifier());
-          if (bundle !== args.bundle_id)
-            throw new Error("Application bundle identity mismatch");
-          state.session = args.session_id;
-          state.bundle = bundle;
-          leaseTimer = setInterval(() => {
-            if (sweepPending)
-              return;
-            sweepPending = true;
-            main(() => expireLeases()).catch(() => {
-            }).finally(() => {
-              sweepPending = false;
-            });
-          }, 1e3);
-          return {
-            bundle_id: bundle,
-            pid: Process.id,
-            architecture: Process.arch,
-            executable: String(frida_objc_bridge_default.classes.NSBundle.mainBundle().executablePath()),
-            observed: true
-          };
-        });
+        const identity = processIdentity();
+        if (identity.bundle_id !== args.bundle_id)
+          throw new Error("Application bundle identity mismatch");
+        state.session = args.session_id;
+        state.bundle = identity.bundle_id;
+        leaseTimer = setInterval(() => {
+          if (sweepPending || state.objects.size === 0)
+            return;
+          sweepPending = true;
+          main(() => expireLeases()).catch(() => {
+          }).finally(() => {
+            sweepPending = false;
+          });
+        }, 1e3);
+        return identity;
       }
       if (!state.session)
         throw new Error("Initialize the process session first");
@@ -4586,7 +4603,7 @@ rpc.exports = {
         return metadata2;
       }
       if (name === "identity")
-        return await main(() => ({ bundle_id: state.bundle, pid: Process.id, main_image: imageFor(Process.mainModule.base), executable: String(frida_objc_bridge_default.classes.NSBundle.mainBundle().executablePath()), observed: true }));
+        return { ...processIdentity(), main_image: imageFor(Process.mainModule.base) };
       if (name === "tweak_state") {
         const module = Process.findModuleByName(args.module_name);
         if (!module)
@@ -4613,15 +4630,14 @@ rpc.exports = {
       }
       if (name === "dispose") {
         state.disposing = true;
-        return await main(() => {
-          if (leaseTimer !== null)
-            clearInterval(leaseTimer);
-          leaseTimer = null;
-          dispose2();
-          dispose3();
-          releaseObjects();
-          return { disposed: true };
-        });
+        if (leaseTimer !== null)
+          clearInterval(leaseTimer);
+        leaseTimer = null;
+        dispose2();
+        dispose3();
+        if (state.objects.size)
+          await main(() => releaseObjects());
+        return { disposed: true };
       }
       if (!methods2[name])
         throw new Error(`Unknown inspection RPC: ${name}`);

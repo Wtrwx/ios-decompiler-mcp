@@ -1,5 +1,4 @@
-import ObjC from "frida-objc-bridge";
-import { Args, expireLeases, imageFor, main, objectStats, releaseObjects, requireRuntime, state, takeExpiredLeases, withObjectLease } from "./common.js";
+import { Args, expireLeases, imageFor, main, objectStats, processIdentity, releaseObjects, requireRuntime, state, takeExpiredLeases, withObjectLease } from "./common.js";
 import * as runtime from "./objc_runtime.js";
 import * as ui from "./ui_inspector.js";
 import * as tracer from "./tracer.js";
@@ -43,18 +42,15 @@ rpc.exports = {
       requireRuntime();
       if (name === "initialize") {
         if (state.session) throw new Error("Agent already initialized");
-        return await main(() => {
-          const bundle = String(ObjC.classes.NSBundle.mainBundle().bundleIdentifier());
-          if (bundle !== args.bundle_id) throw new Error("Application bundle identity mismatch");
-          state.session = args.session_id; state.bundle = bundle;
-          leaseTimer = setInterval(() => {
-            if (sweepPending) return;
-            sweepPending = true;
-            main(() => expireLeases()).catch(() => {}).finally(() => { sweepPending = false; });
-          }, 1000);
-          return { bundle_id: bundle, pid: Process.id, architecture: Process.arch,
-            executable: String(ObjC.classes.NSBundle.mainBundle().executablePath()), observed: true };
-        });
+        const identity = processIdentity();
+        if (identity.bundle_id !== args.bundle_id) throw new Error("Application bundle identity mismatch");
+        state.session = args.session_id; state.bundle = identity.bundle_id;
+        leaseTimer = setInterval(() => {
+          if (sweepPending || state.objects.size === 0) return;
+          sweepPending = true;
+          main(() => expireLeases()).catch(() => {}).finally(() => { sweepPending = false; });
+        }, 1000);
+        return identity;
       }
       if (!state.session) throw new Error("Initialize the process session first");
       if (name === "app_logs") return await logging.run(args);
@@ -68,7 +64,7 @@ rpc.exports = {
         if (png) { delete metadata.screenshot._png; return [metadata, png]; }
         return metadata;
       }
-      if (name === "identity") return await main(() => ({ bundle_id: state.bundle, pid: Process.id, main_image: imageFor(Process.mainModule.base), executable: String(ObjC.classes.NSBundle.mainBundle().executablePath()), observed: true }));
+      if (name === "identity") return { ...processIdentity(), main_image: imageFor(Process.mainModule.base) };
       if (name === "tweak_state") {
         const module = Process.findModuleByName(args.module_name);
         if (!module) return { loaded: false, observed: true };
@@ -81,7 +77,13 @@ rpc.exports = {
       }
       if (name === "dispose") {
         state.disposing = true;
-          return await main(() => { if (leaseTimer !== null) clearInterval(leaseTimer); leaseTimer = null; tracer.dispose(); logging.dispose(); releaseObjects(); return { disposed: true }; });
+        if (leaseTimer !== null) clearInterval(leaseTimer);
+        leaseTimer = null;
+        tracer.dispose(); logging.dispose();
+        // A debugger/log-only session has no UIKit retains to drain. Sessions
+        // with UI handles still release their final references on the main queue.
+        if (state.objects.size) await main(() => releaseObjects());
+        return { disposed: true };
       }
       if (!methods[name]) throw new Error(`Unknown inspection RPC: ${name}`);
       const queuedAt = Date.now();

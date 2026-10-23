@@ -96,6 +96,20 @@ display remain unmeasured. Cold n=1 has no percentile estimate. Earlier timeout
 runs were retained privately and excluded from this successful-series summary.
 See [per-sample results](scroll-benchmarks.json).
 
+A later forward-only run used the locator-filter/boundary agent
+`1436495e7e17908751faeeb12f48b7a48ad5468e801f1158d997fa28d9aaf43b`
+and a newer test-tweak build, with the same animated/500 ms settings. There were
+12 requests: one cold movement, ten warm movements, then one boundary response.
+Offsets advanced from 0 to 9856 points (11 × 896); the final request reported
+`performed=false, at_boundary=true` and is excluded from movement percentiles.
+The single cold sample was 5300.15 ms server / 5344.79 ms stdio / 537 bytes.
+For the ten warm movements, p50/p95 were 663.59/740.34 ms server,
+669.76/748.20 ms stdio, and 534/535 bytes; all reused one session. This small
+series confirms forward movement through available content, not indefinite
+network loading or a same-condition speed comparison with the earlier tweak.
+App playback and comment stability require separate checks. See
+[forward samples](scroll-forward-benchmarks.json).
+
 ## Encoding and response size
 
 The controlled screenshots were byte-identical lossless PNGs: 828×1792,

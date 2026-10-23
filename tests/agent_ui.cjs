@@ -163,6 +163,23 @@ test('filters run before metadata/retains and opt-in text redacts sensitive cont
   assert.equal(secret.views[0].text, '[REDACTED]');
 });
 
+test('class locators skip accessibility and touch metadata on unmatched and selected views', () => {
+  const r = runtime();
+  const excluded = r.add(r.root, r.view('CustomTouchView'));
+  const chosen = r.add(r.root, r.view('UIButton'));
+  for (const view of [r.root, excluded, chosen]) {
+    view.isAccessibilityElement = () => { throw Error('Unrequested native accessibility getter'); };
+    view.gestureRecognizers = () => { throw Error('Unrequested gesture metadata'); };
+  }
+  const found = scope(r, 'locator', () => r.ui.snapshot({ class_name: 'UIButton', controls_only: false, fields: ['view_id'] }));
+  assert.equal(found.views.length, 1);
+  assert.equal(found.views[0].view_id, r.common.state.byPointer.get(chosen.handle.toString()));
+  assert.equal(excluded.retains, 0);
+  // A control summary still computes its requested interaction flag.
+  const summary = scope(r, 'control', () => r.ui.snapshot({ class_name: 'UIButton' }));
+  assert.equal(summary.views[0].interactive, true);
+});
+
 test('one live capture reports truncation at the object bound and new operations can recover', () => {
   const r = runtime();
   // Retaining 2049 objects in a single operation fails and rolls back its references.
@@ -295,10 +312,10 @@ test('automation scroll clamps UIKit points and switch/accessibility activation 
 
 test('page scrolling derives the live viewport and clamps both directions without extra snapshots', async () => {
   const r = runtime(), scroll = r.add(r.root, r.view('UIScrollView'));
-  let offset = [0, 0], viewport = 400;
+  let offset = [0, 0], viewport = 400, mutations = 0;
   scroll.contentOffset = () => offset; scroll.contentSize = () => [200, 1100];
   scroll.bounds = () => [[0, 0], [200, viewport]]; scroll.adjustedContentInset = () => [10, 0, 20, 0];
-  scroll.setContentOffset_animated_ = (next, animated) => { offset = next; assert.equal(animated, true); };
+  scroll.setContentOffset_animated_ = (next, animated) => { mutations++; offset = next; assert.equal(animated, true); };
   const id = scope(r, 'feed', () => r.common.objectId(scroll));
   const run = pages => r.automation.run({ _lease_id: 'page_' + Math.random(), _lease_ttl: 60,
     after_capture: 'none', steps: [{ action: 'scroll', target: { view_id: id }, pages, animated: true }] });
@@ -307,7 +324,13 @@ test('page scrolling derives the live viewport and clamps both directions withou
   await run(1); assert.equal(offset[1], 700);
   const clamped = await run(1); assert.equal(offset[1], 820);
   assert.deepEqual(clamped.steps[0].content_offset, { x: 0, y: 820 });
+  const bottom = await run(1);
+  assert.equal(bottom.completed, true); assert.equal(bottom.steps[0].performed, false);
+  assert.equal(bottom.steps[0].at_boundary, true); assert.equal(mutations, 3);
   await run(-10); assert.equal(offset[1], -10);
+  const top = await run(-1);
+  assert.equal(top.steps[0].performed, false); assert.equal(top.steps[0].at_boundary, true);
+  assert.equal(mutations, 4); assert.equal(r.reads().windowsReads, 0);
   assert.equal(r.chooseCalls.length, 0);
 });
 

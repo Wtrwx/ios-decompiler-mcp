@@ -1,0 +1,200 @@
+{
+  "samples": [
+    {
+      "index": 0,
+      "kind": "cold",
+      "client_ms": 5344.788,
+      "server_ms": 5300.15,
+      "result_bytes": 537,
+      "reused": false,
+      "performed": true,
+      "at_boundary": false,
+      "step_ms": 207,
+      "offset_y": 896
+    },
+    {
+      "index": 1,
+      "kind": "reuse",
+      "client_ms": 748.197,
+      "server_ms": 740.34,
+      "result_bytes": 535,
+      "reused": true,
+      "performed": true,
+      "at_boundary": false,
+      "step_ms": 30,
+      "offset_y": 1792
+    },
+    {
+      "index": 2,
+      "kind": "reuse",
+      "client_ms": 732.118,
+      "server_ms": 722.02,
+      "result_bytes": 534,
+      "reused": true,
+      "performed": true,
+      "at_boundary": false,
+      "step_ms": 6,
+      "offset_y": 2688
+    },
+    {
+      "index": 3,
+      "kind": "reuse",
+      "client_ms": 746.59,
+      "server_ms": 739.02,
+      "result_bytes": 534,
+      "reused": true,
+      "performed": true,
+      "at_boundary": false,
+      "step_ms": 7,
+      "offset_y": 3584
+    },
+    {
+      "index": 4,
+      "kind": "reuse",
+      "client_ms": 646.746,
+      "server_ms": 638.12,
+      "result_bytes": 534,
+      "reused": true,
+      "performed": true,
+      "at_boundary": false,
+      "step_ms": 7,
+      "offset_y": 4480
+    },
+    {
+      "index": 5,
+      "kind": "reuse",
+      "client_ms": 655.285,
+      "server_ms": 647.0,
+      "result_bytes": 533,
+      "reused": true,
+      "performed": true,
+      "at_boundary": false,
+      "step_ms": 7,
+      "offset_y": 5376
+    },
+    {
+      "index": 6,
+      "kind": "reuse",
+      "client_ms": 672.899,
+      "server_ms": 663.59,
+      "result_bytes": 534,
+      "reused": true,
+      "performed": true,
+      "at_boundary": false,
+      "step_ms": 7,
+      "offset_y": 6272
+    },
+    {
+      "index": 7,
+      "kind": "reuse",
+      "client_ms": 669.762,
+      "server_ms": 663.8,
+      "result_bytes": 533,
+      "reused": true,
+      "performed": true,
+      "at_boundary": false,
+      "step_ms": 7,
+      "offset_y": 7168
+    },
+    {
+      "index": 8,
+      "kind": "reuse",
+      "client_ms": 648.625,
+      "server_ms": 639.74,
+      "result_bytes": 534,
+      "reused": true,
+      "performed": true,
+      "at_boundary": false,
+      "step_ms": 6,
+      "offset_y": 8064
+    },
+    {
+      "index": 9,
+      "kind": "reuse",
+      "client_ms": 708.473,
+      "server_ms": 700.87,
+      "result_bytes": 534,
+      "reused": true,
+      "performed": true,
+      "at_boundary": false,
+      "step_ms": 9,
+      "offset_y": 8960
+    },
+    {
+      "index": 10,
+      "kind": "reuse",
+      "client_ms": 642.647,
+      "server_ms": 634.08,
+      "result_bytes": 534,
+      "reused": true,
+      "performed": true,
+      "at_boundary": false,
+      "step_ms": 7,
+      "offset_y": 9856
+    },
+    {
+      "index": 11,
+      "kind": "reuse",
+      "client_ms": 663.223,
+      "server_ms": 655.32,
+      "result_bytes": 555,
+      "reused": true,
+      "performed": false,
+      "at_boundary": true,
+      "step_ms": 15,
+      "offset_y": 9856
+    }
+  ],
+  "settle_ms": 500,
+  "transport": "MCP stdio",
+  "image": false,
+  "agent_sha256": "1436495e7e17908751faeeb12f48b7a48ad5468e801f1158d997fa28d9aaf43b",
+  "summary": {
+    "requests": 12,
+    "moved_requests": 11,
+    "cold_n": 1,
+    "warm_n": 10,
+    "warm_reused_all": true,
+    "sessions": 1,
+    "cold": {
+      "index": 0,
+      "kind": "cold",
+      "client_ms": 5344.788,
+      "server_ms": 5300.15,
+      "result_bytes": 537,
+      "reused": false,
+      "performed": true,
+      "at_boundary": false,
+      "step_ms": 207,
+      "offset_y": 896
+    },
+    "server_ms": {
+      "p50": 663.59,
+      "p95": 740.34
+    },
+    "client_ms": {
+      "p50": 669.762,
+      "p95": 748.197
+    },
+    "result_bytes": {
+      "p50": 534,
+      "p95": 535
+    },
+    "step_ms": {
+      "p50": 7,
+      "p95": 30
+    }
+  },
+  "context": {
+    "device": "iPhone11,8",
+    "ios": "16.0",
+    "app_version": "40.7.0",
+    "tweak_build": "fullscreen-viewport-20261023.10",
+    "animated": true,
+    "scope": "forward movement through loaded content; boundary excluded from movement statistics",
+    "client_excludes": [
+      "model scheduling",
+      "image display"
+    ]
+  }
+}

@@ -128,6 +128,10 @@ export function step(args: Args): Args {
     const dy = args.pages == null ? (args.dy ?? 0) : Number(bounds[1]) * args.pages;
     const x = Math.max(-left, Math.min(Math.max(-left, Number(size[0]) - Number(bounds[0]) + right), Number(offset[0]) + (args.dx ?? 0)));
     const y = Math.max(-top, Math.min(Math.max(-top, Number(size[1]) - Number(bounds[1]) + bottom), Number(offset[1]) + dy));
+    if (x === Number(offset[0]) && y === Number(offset[1])) {
+      return { action, view_id: objectId(view), content_offset: { x, y }, performed: false,
+        at_boundary: dy !== 0 || (args.dx ?? 0) !== 0 };
+    }
     view!.setContentOffset_animated_([x, y], !!args.animated);
     return { action, view_id: objectId(view), content_offset: { x, y }, performed: true };
   }

@@ -45,6 +45,8 @@ For a vertical paged feed, use `scroll` with `pages=1` (next) or `pages=-1`
 reads its current viewport height; do not hardcode screen pixels or Tab Bar
 height. Reuse the observed scroll view ID to avoid another tree search. Verify
 page identity/playback where relevant; content offsets alone do not prove play.
+`performed=false, at_boundary=true` means the loaded content cannot move farther;
+stop or wait for an observed content update. Do not count boundary calls as pages.
 
 For a tweak regression, observe the relevant property/action before and after
 the change, then assert the expected state. For builds/deployment, read

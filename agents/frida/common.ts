@@ -93,6 +93,18 @@ export function requireRuntime(): void {
   if (!ObjC.available) throw new Error("Objective-C runtime is unavailable; pure Swift metadata is not reconstructed");
 }
 
+// NSBundle is thread-safe Foundation metadata. Cold debugger attachment must
+// not wait for a hung UIKit main queue merely to verify process identity.
+export function processIdentity(): Args {
+  requireRuntime();
+  const pool = ObjC.classes.NSAutoreleasePool.alloc().init();
+  try {
+    const bundle = ObjC.classes.NSBundle.mainBundle();
+    return { bundle_id: String(bundle.bundleIdentifier()), pid: Process.id,
+      architecture: Process.arch, executable: String(bundle.executablePath()), observed: true };
+  } finally { pool.drain(); }
+}
+
 export function main<T>(work: () => T): Promise<T> {
   requireRuntime();
   return new Promise((resolve, reject) => {

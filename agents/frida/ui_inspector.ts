@@ -119,7 +119,7 @@ function describe(view: ObjC.Object, includeText: boolean, detailed = false, fie
     result.visible = !(ancestors.hidden || view.isHidden()) && Number(view.alpha()) * (visibility ? 1 : ancestors.alpha) > .01 && (visibility ? visibility.visible : true);
   }
   if (selected.has("user_interaction_enabled")) result.user_interaction_enabled = !!view.isUserInteractionEnabled();
-  if (selected.has("interactive")) result.interactive = interactive(view) && (visibility?.interaction ?? ancestry(view).interaction);
+  if (selected.has("interactive")) result.interactive = visibility?.interactive ?? (interactive(view) && ancestry(view).interaction);
   if (selected.has("accessibility_identifier")) result.accessibility_identifier = nullableString(view.accessibilityIdentifier());
   if (selected.has("controller")) result.controller = controller(view, owners);
   if (selected.has("observed")) result.observed = true;
@@ -150,17 +150,22 @@ export function snapshot(args: Args, windowInfo = windows()): Args {
     const visible = !hidden && alpha > .01 && box.width > 0 && box.height > 0 && !!windowBox &&
       box.x < windowBox.x + windowBox.width && box.y < windowBox.y + windowBox.height && box.x + box.width > windowBox.x && box.y + box.height > windowBox.y;
     if (visibleOnly && (hidden || alpha <= .01)) continue; // The entire subtree is invisible.
-    const isInteractive = ancestors.interaction && interactive(view);
-    const isContent = isInteractive || isKind(view, "UILabel") || isKind(view, "UITextView") || !!view.isAccessibilityElement();
     const matches = (!args.class_name || view.$className === args.class_name) &&
       (!args.accessibility_identifier || nullableString(view.accessibilityIdentifier()) === args.accessibility_identifier) &&
       (args.hidden == null || !!view.isHidden() === args.hidden) &&
       (args.user_interaction_enabled == null || !!view.isUserInteractionEnabled() === args.user_interaction_enabled) &&
       (args.text == null || String(text(view) || "").toLowerCase().includes(String(args.text).toLowerCase()));
     let selectedParent = parent_id;
-    if (matches && (!visibleOnly || visible) && (!controlsOnly || isContent)) {
+    // Class/identifier locators need no accessibility or touch metadata. Native
+    // accessibility overrides can perform substantial layout work themselves.
+    // Filter first, and query interaction only when selection/output needs it.
+    const isInteractive = matches && (!visibleOnly || visible) && (controlsOnly || fields.includes("interactive")) ?
+      ancestors.interaction && interactive(view) : undefined;
+    const isContent = !controlsOnly || isInteractive || (matches && (!visibleOnly || visible) &&
+      (isKind(view, "UILabel") || isKind(view, "UITextView") || !!view.isAccessibilityElement()));
+    if (matches && (!visibleOnly || visible) && isContent) {
       try {
-        const description = describe(view, !!args.include_text, false, fields, owners, { hidden, alpha, interaction: ancestors.interaction, visible });
+        const description = describe(view, !!args.include_text, false, fields, owners, { hidden, alpha, interaction: ancestors.interaction, interactive: isInteractive, visible });
         if (fields.includes("parent_id")) description.parent_id = parent_id;
         if (fields.includes("depth")) description.depth = depth;
         nodes.push(description); selectedParent = description.view_id;

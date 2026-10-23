@@ -7,7 +7,7 @@ No legacy import/CLI entry points are shipped. The default focused catalog expos
 **19 tools**, with **70** validated primitives available through `platform_tool`
 or `tool_profile="full"`. Catalog response sizes: 42,343 / 129,746 UTF-8 bytes.
 
-Host checks: **95 Python tests**, **19 production-agent tests**, Ruff, mypy,
+Host checks: **95 Python tests**, **22 production-agent tests**, Ruff, mypy,
 TypeScript typecheck, locked dependency installation and agent build pass.
 Wheel/sdist build and installed-wheel stdio verification pass. The wheel contains
 the compiled agent, LLDB worker and third-party licenses; the source archive
@@ -17,8 +17,20 @@ also launched directly: `Vesper iOS` returned a native image from the phone
 (one cold request, 7209.74 ms MCP round trip; not a statistical speed claim).
 The screenshot deployment check used agent SHA-256
 `7a5113a04242c03899ddca9bcbbd8a00d162e68b94b1431463c35a94463c223f`
-for that deployment check. Current page-scroll build SHA-256 is
+for that deployment check. The measured page-scroll build SHA-256 is
 `8e0eac7fbf6dbc0f9751de68021374e3206726db57b4515c24f7c66eccd6d839`.
+Current locator-filter/boundary/debugger build SHA-256 is
+`0ae62346088d4c6efd597a1a62f6427cd94c3636ce6896f6d796612a2ad1e231`.
+Class/identifier filters run before interaction/accessibility metadata; requesting
+only IDs with `controls_only=false` does not invoke those optional getters.
+A production-agent regression uses getters that throw if unnecessarily queried.
+Page-scroll tests also prove that repeated requests at either content boundary
+return `performed=false, at_boundary=true` without another native offset setter
+or UI-tree traversal.
+Cold process identity uses thread-safe Foundation metadata without waiting for
+UIKit. Two lifecycle tests model an unresponsive main queue: identity validation,
+debugger RPCs and empty-session cleanup remain available, while retained UI
+objects still wait for main-queue release. Empty sessions also skip lease sweeps.
 A later gesture-only UIButton traversal fix is covered
 by an additional agent test; it stops at UIWindow rather than reporting a false
 detached-view error when the window's own `window` is nil.
@@ -69,9 +81,14 @@ Physical checks on the configured iPhone/iOS 16.0 and Frida 17.5.0:
 
 The reusable [vesper-ios skill](../skills/vesper-ios/SKILL.md) covers backend
 selection, decryption + classdumpc/IDA/runtime chains, SSH builds/installation,
-regression checks, and Frida/log fallbacks when LLDB cannot attach. A remote
-Theos build host and a newly installed device tweak are not verified by these
-platform checks. DYYY source has not been modified by the platform changes.
+regression checks, and Frida/log fallbacks when LLDB cannot attach. A separate,
+operator-requested DYYY change was compiled with local Theos, uploaded over the
+pinned SSH/SFTP connection, installed with dpkg and checked after app restart on
+Douyin 40.7.0. Package and installed executable hashes were retained; observed
+RootHide branding/signature changes were parsed and every other byte compared.
+This validates that manual deployment path, not a remote Theos build host or
+the generic fixture workflow. The DYYY UI regression record is maintained with
+that tweak; it is separate from the platform test counts above.
 
 The following sections retain the earlier record. Their counts and remaining
 checks describe the 2026-10-22 version, not the current capture implementation.
