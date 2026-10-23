@@ -43,12 +43,16 @@ termination reason; keep raw reports local and collect only the needed frames.
 
 Distinguish an app exit from a Frida transport exit. For repeated
 `connection-terminated` events, inspect the existing Frida launchd service's PID,
-run count, last exit reason and effective memory limits with `launchctl print`.
+run count, last exit reason and configured memory limits with `launchctl print`.
 `OS_REASON_JETSAM` on that service identifies a daemon termination; it does not
 establish why the app exited. Record the actual launchd domain: iOS 16 launchctl
 [can redirect a daemon](https://github.com/roothide/launchctl/blob/main/bootstrap.c)
-to the foreground user's domain. A plist edit or successful
-reload does not prove a memory allowance changed; verify the effective limits.
+to the foreground user's domain. Launchd's displayed limits need not match the
+running process: [Frida 17.5.0 requests 256 MB at startup](https://github.com/frida/frida-core/blob/17.5.0/server/server-ios-tvos.c).
+The source request does not prove the kernel accepted it. Use a permitted
+read-only runtime query or a matching Jetsam report to establish the actual
+limits and whether the kill was a per-process limit or system memory pressure.
+A plist edit or successful reload alone does not prove a fix.
 Preserve the deployed Frida client/server version pairing during diagnosis.
 
 ## UIKit layout diagnosis
