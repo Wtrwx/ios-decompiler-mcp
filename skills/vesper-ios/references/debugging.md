@@ -41,6 +41,16 @@ when all configured crash roots are inaccessible. An inaccessible directory is
 not evidence of a crash-free run. Correlate the target process, timestamp and
 termination reason; keep raw reports local and collect only the needed frames.
 
+Distinguish an app exit from a Frida transport exit. For repeated
+`connection-terminated` events, inspect the existing Frida launchd service's PID,
+run count, last exit reason and effective memory limits with `launchctl print`.
+`OS_REASON_JETSAM` on that service identifies a daemon termination; it does not
+establish why the app exited. Record the actual launchd domain: iOS 16 launchctl
+[can redirect a daemon](https://github.com/roothide/launchctl/blob/main/bootstrap.c)
+to the foreground user's domain. A plist edit or successful
+reload does not prove a memory allowance changed; verify the effective limits.
+Preserve the deployed Frida client/server version pairing during diagnosis.
+
 ## UIKit layout diagnosis
 
 Compare the actual media view, its container, overlays and occluding panels in
