@@ -56,6 +56,10 @@ large rectangle need not match the rendered image. Check the loaded image size,
 content mode and clipping, or verify a screenshot before changing photo layout.
 Cache a closed-comment video baseline before native comment animation begins;
 layout callbacks during that animation already contain transformed geometry.
+Paged feeds preload offscreen cells. Store a stable cell reference with a cached
+window rectangle and translate it by the cell's current window origin before
+reuse; an offscreen preload coordinate can otherwise move the current video out
+of view. Include a scroll into a newly preloaded page in the regression.
 Avoid invalidating a view unconditionally from its own layout callback.
 
 A UIButton may implement taps solely through a gesture/block with no UIControl
